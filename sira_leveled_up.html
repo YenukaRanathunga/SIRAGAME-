@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--surface:#0f0f0f;--white:#f0ede8;
+  --dim:#3a3a3a;--accent:#c8f53a;--accent2:#ff4d2e;
+  --muted:#555;--border:#1c1c1c;--border2:#2a2a2a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.15s ease;mix-blend-mode:difference}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(200,245,58,0.4);border-radius:50%;pointer-events:none;z-index:9998;transition:all 0.12s ease}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.5rem 3rem;border-bottom:1px solid transparent;transition:border-color 0.3s,background 0.3s}
+nav.scrolled{background:rgba(8,8,8,0.92);backdrop-filter:blur(12px);border-color:var(--border)}
+.logo{font-family:'Space Mono',monospace;font-size:1.4rem;font-weight:700;letter-spacing:0.2em;color:var(--white);text-decoration:none}
+.logo .dot{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:1.5rem}
+.nav-tag{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.12em}
+.nav-link{font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:none;border:none;cursor:none;transition:color 0.2s;text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+.admin-btn{font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--border2);padding:0.45rem 1rem;cursor:none;transition:all 0.2s;border-radius:2px}
+.admin-btn:hover{color:var(--accent);border-color:var(--accent)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 3rem 4rem;position:relative;overflow:hidden}
+.hero-bg-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Space Mono',monospace;font-size:clamp(100px,22vw,280px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,0.035);white-space:nowrap;pointer-events:none;user-select:none;letter-spacing:-0.05em;animation:bgdrift 20s ease-in-out infinite alternate}
+@keyframes bgdrift{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-51%) scale(1.03)}}
+.hero-eyebrow{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+.hero-eyebrow::before{content:'';display:inline-block;width:32px;height:1px;background:var(--accent)}
+.hero-h1{font-size:clamp(3.5rem,9vw,9rem);font-weight:700;line-height:0.92;letter-spacing:-0.04em;margin-bottom:3rem}
+.hero-h1 .outline{-webkit-text-stroke:1px var(--white);color:transparent}
+.hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.hero-desc{max-width:380px;font-size:0.92rem;color:#888;line-height:1.75}
+.hero-cta{display:flex;align-items:center;gap:1rem;background:var(--accent);color:#080808;padding:1rem 2rem;text-decoration:none;font-weight:700;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;border-radius:2px;transition:all 0.2s;white-space:nowrap;cursor:none;border:none}
+.hero-cta:hover{background:var(--white);transform:translateY(-2px)}
+.hero-cta .arrow{font-size:1.1rem;transition:transform 0.2s}
+.hero-cta:hover .arrow{transform:translateX(4px)}
+
+/* MARQUEE */
+.marquee-wrap{border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:1rem 0;background:var(--surface)}
+.marquee-track{display:flex;gap:3rem;animation:marquee 24s linear infinite;width:max-content}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee-item{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:1.5rem}
+.marquee-item .sep{color:var(--accent);font-size:1.2rem}
+
+/* TOOLS */
+.tools{padding:8rem 3rem;position:relative}
+.tools-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5rem;gap:2rem;flex-wrap:wrap}
+.tools-label{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:1rem}
+.tools-title{font-size:clamp(2rem,4vw,3.5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05}
+.tools-title em{font-style:normal;-webkit-text-stroke:1px var(--white);color:transparent}
+.tools-count{font-family:'Space Mono',monospace;font-size:5rem;font-weight:700;color:var(--border);letter-spacing:-0.05em;align-self:flex-end}
+#tool-list{}
+.tool-row{border-top:1px solid var(--border);display:grid;grid-template-columns:60px 1fr auto auto;align-items:center;gap:2rem;padding:2rem 0;transition:background 0.2s;cursor:none;position:relative}
+.tool-row:last-child{border-bottom:1px solid var(--border)}
+.tool-row::after{content:'';position:absolute;left:0;right:0;top:0;bottom:0;background:rgba(200,245,58,0.02);opacity:0;transition:opacity 0.2s}
+.tool-row:hover::after{opacity:1}
+.tool-num{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);letter-spacing:0.08em}
+.tool-name{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:700;letter-spacing:-0.03em;transition:color 0.2s}
+.tool-row:hover .tool-name{color:var(--accent)}
+.tool-cat{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;text-align:right}
+.tool-arrow{font-size:1.3rem;color:var(--dim);transition:color 0.2s,transform 0.2s}
+.tool-row:hover .tool-arrow{color:var(--accent);transform:translateX(6px)}
+.tool-tag{display:inline-block;background:rgba(200,245,58,0.1);border:1px solid rgba(200,245,58,0.2);color:var(--accent);font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;padding:0.25rem 0.65rem;border-radius:1px;text-transform:uppercase}
+.tool-tag.new{background:rgba(255,77,46,0.1);border-color:rgba(255,77,46,0.2);color:var(--accent2)}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);min-height:60vh}
+.split-left{padding:5rem 3rem;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.split-right{padding:5rem 3rem;display:flex;flex-direction:column;justify-content:center}
+.split-eyebrow{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:2rem}
+.split-left h2{font-size:clamp(2rem,3.5vw,3rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:2rem}
+.split-left p{font-size:0.92rem;color:#888;line-height:1.8;max-width:400px}
+.stat-block{margin-bottom:3rem}
+.stat-big{font-family:'Space Mono',monospace;font-size:clamp(3rem,7vw,5.5rem);font-weight:700;letter-spacing:-0.05em;line-height:1;color:var(--accent);margin-bottom:0.5rem}
+.stat-label-text{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+.lk-flag{margin-top:3rem;display:flex;align-items:center;gap:0.75rem}
+.lk-bar{height:3px;width:48px;background:linear-gradient(90deg,#8D153A 33%,#F4C430 33%,#F4C430 66%,#006400 66%)}
+.lk-text{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+
+/* ===== GAMES SECTION ===== */
+.games-section{padding:8rem 3rem;border-top:1px solid var(--border);position:relative;overflow:hidden}
+.games-section::before{content:'PLAY';position:absolute;right:-2rem;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Space Mono',monospace;font-size:clamp(60px,12vw,160px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(200,245,58,0.04);pointer-events:none;letter-spacing:-0.05em}
+.games-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5rem;gap:2rem;flex-wrap:wrap}
+.games-title{font-size:clamp(2rem,4vw,3.5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05}
+.games-title em{font-style:normal;-webkit-text-stroke:1px var(--white);color:transparent}
+.games-sub{font-size:0.88rem;color:#666;line-height:1.7;max-width:340px;margin-top:1rem}
+
+/* GAME CARD GRID */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1px;border:1px solid var(--border)}
+.game-card{background:var(--surface);padding:2.5rem;cursor:none;transition:background 0.2s;position:relative;overflow:hidden}
+.game-card:hover{background:#111}
+.game-card-num{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;margin-bottom:1.25rem}
+.game-card-icon{font-size:2.5rem;margin-bottom:1rem;display:block}
+.game-card-name{font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.5rem}
+.game-card-desc{font-size:0.82rem;color:#666;line-height:1.65;margin-bottom:2rem}
+.game-card-meta{display:flex;align-items:center;justify-content:space-between}
+.game-card-tag{font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);background:rgba(200,245,58,0.08);border:1px solid rgba(200,245,58,0.15);padding:0.25rem 0.65rem;border-radius:1px}
+.game-play-btn{font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#080808;background:var(--accent);border:none;padding:0.55rem 1.2rem;border-radius:2px;cursor:none;transition:background 0.2s;font-weight:700}
+.game-play-btn:hover{background:var(--white)}
+.game-card-shine{position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at 100% 0%,rgba(200,245,58,0.04),transparent 70%);pointer-events:none}
+
+/* ===== GAME MODAL ===== */
+.game-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:1.5rem}
+.game-modal.open{display:flex}
+.game-modal-inner{background:var(--surface);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;position:relative}
+.gm-header{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;border-bottom:1px solid var(--border)}
+.gm-title{font-family:'Space Mono',monospace;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)}
+.gm-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:none;font-family:'Space Mono',monospace;transition:color 0.2s}
+.gm-close:hover{color:var(--white)}
+.gm-body{padding:2rem}
+.gm-score-bar{display:flex;align-items:center;gap:2rem;margin-bottom:1.5rem;font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);letter-spacing:0.1em;flex-wrap:wrap}
+.gm-score-val{color:var(--accent);font-size:1.1rem;font-weight:700}
+.gm-canvas-wrap{display:flex;justify-content:center;margin-bottom:1.5rem}
+canvas{display:block;image-rendering:pixelated}
+.gm-controls{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.08em;text-align:center;line-height:2}
+.gm-btn{font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#080808;background:var(--accent);border:none;padding:0.6rem 1.4rem;border-radius:2px;cursor:none;transition:background 0.2s;font-weight:700;margin-right:0.5rem}
+.gm-btn:hover{background:var(--white)}
+.gm-btn.secondary{background:none;border:1px solid var(--border2);color:var(--muted)}
+.gm-btn.secondary:hover{color:var(--white);border-color:var(--dim)}
+.gm-overlay-msg{text-align:center;padding:2rem;font-family:'Space Mono',monospace}
+.gm-overlay-msg h3{font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.5rem}
+.gm-overlay-msg p{font-size:0.8rem;color:var(--muted);margin-bottom:1.5rem}
+
+/* TYPE RUSH */
+.type-rush-wrap{padding:0}
+.tr-word-display{font-family:'Space Mono',monospace;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;letter-spacing:-0.02em;text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;color:var(--white);transition:color 0.15s;position:relative}
+.tr-word-display.correct{color:var(--accent)}
+.tr-word-display.wrong{color:var(--accent2)}
+.tr-typed{color:var(--accent)}
+.tr-untyped{color:#444}
+.tr-current{color:var(--white);border-bottom:2px solid var(--accent)}
+.tr-input{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:1rem 1.25rem;font-family:'Space Mono',monospace;font-size:1rem;border-radius:2px;outline:none;transition:border-color 0.2s;letter-spacing:0.06em;cursor:text;text-align:center;font-size:1.1rem}
+.tr-input:focus{border-color:var(--accent)}
+.tr-input.wrong{border-color:var(--accent2)}
+.tr-progress-track{height:3px;background:var(--border2);border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
+.tr-progress-fill{height:100%;background:var(--accent);transition:width 0.1s linear;border-radius:2px}
+.tr-stats-row{display:flex;gap:2rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.tr-stat{text-align:center}
+.tr-stat-val{font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent)}
+.tr-stat-label{font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+
+/* MINESWEEPER */
+.mine-grid-wrap{overflow-x:auto;display:flex;justify-content:center;margin-bottom:1.5rem}
+.mine-grid{display:inline-grid;gap:3px;padding:1rem;background:var(--bg);border:1px solid var(--border);border-radius:3px}
+.mine-cell{width:34px;height:34px;background:#111;border:1px solid var(--border2);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;cursor:none;transition:background 0.15s,border-color 0.15s;user-select:none}
+.mine-cell:hover{background:#1a1a1a;border-color:var(--dim)}
+.mine-cell.revealed{background:var(--bg);border-color:var(--border);cursor:default}
+.mine-cell.revealed:hover{background:var(--bg)}
+.mine-cell.flagged{background:rgba(255,77,46,0.08);border-color:rgba(255,77,46,0.3)}
+.mine-cell.boom{background:rgba(255,77,46,0.15);border-color:var(--accent2)}
+.mine-cell.safe-reveal{background:rgba(200,245,58,0.06);border-color:rgba(200,245,58,0.15)}
+.mine-n1{color:#5b9cf6}.mine-n2{color:var(--accent)}.mine-n3{color:var(--accent2)}
+.mine-n4{color:#a855f7}.mine-n5{color:#ef4444}.mine-n6{color:#06b6d4}
+.mine-n7{color:#f59e0b}.mine-n8{color:#888}
+.mine-controls-row{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.mine-diff-btn{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;background:none;border:1px solid var(--border2);color:var(--muted);padding:0.4rem 0.85rem;border-radius:2px;cursor:none;transition:all 0.2s}
+.mine-diff-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(200,245,58,0.06)}
+.mine-diff-btn:hover{border-color:var(--dim);color:var(--white)}
+.mine-flag-hint{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;margin-left:auto}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem}
+.footer-logo{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;letter-spacing:0.2em;color:var(--white)}
+.footer-logo span{color:var(--accent)}
+.footer-copy{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.1em}
+.footer-email{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid var(--dim);transition:color 0.2s,border-color 0.2s}
+.footer-email:hover{color:var(--accent);border-color:var(--accent)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity 0.8s ease,transform 0.8s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ADMIN STYLES */
+.admin-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center}
+.admin-overlay.open{display:flex}
+.login-panel{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:3rem;width:100%;max-width:420px;position:relative}
+.login-panel h2{font-family:'Space Mono',monospace;font-size:1.1rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem}
+.login-panel p{font-size:0.82rem;color:var(--muted);margin-bottom:2.5rem;font-family:'Space Mono',monospace;letter-spacing:0.06em}
+.login-err{color:var(--accent2);font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;margin-bottom:1rem;display:none}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem}
+.field input{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.88rem;border-radius:2px;outline:none;transition:border-color 0.2s;cursor:text}
+.field input:focus{border-color:var(--accent)}
+.login-submit{width:100%;background:var(--accent);color:#080808;border:none;padding:0.9rem;font-family:'Space Mono',monospace;font-size:0.82rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border-radius:2px;cursor:none;transition:background 0.2s;margin-top:0.5rem}
+.login-submit:hover{background:var(--white)}
+.close-btn{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:none;transition:color 0.2s;font-family:'Space Mono',monospace}
+.close-btn:hover{color:var(--white)}
+.admin-dash{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.admin-dash.open{display:block}
+.dash-nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2.5rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
+.dash-logo{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;letter-spacing:0.2em;color:var(--white)}
+.dash-logo span{color:var(--accent)}
+.dash-logo small{color:var(--muted);font-size:0.65rem;margin-left:0.75rem;letter-spacing:0.1em}
+.dash-nav-right{display:flex;gap:1rem;align-items:center}
+.dash-tag{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+.logout-btn{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);background:none;border:1px solid rgba(255,77,46,0.25);padding:0.4rem 0.85rem;cursor:none;border-radius:2px;transition:all 0.2s}
+.logout-btn:hover{background:rgba(255,77,46,0.08)}
+.dash-body{padding:3rem 2.5rem;max-width:1100px;margin:0 auto}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem;flex-wrap:wrap;gap:1.5rem}
+.dash-title{font-size:2rem;font-weight:700;letter-spacing:-0.04em}
+.dash-title span{color:var(--accent)}
+.add-btn{display:flex;align-items:center;gap:0.65rem;background:var(--accent);color:#080808;border:none;padding:0.75rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:background 0.2s}
+.add-btn:hover{background:var(--white)}
+.admin-tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.admin-tool-card{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:1.75rem;position:relative;transition:border-color 0.2s}
+.admin-tool-card:hover{border-color:var(--border)}
+.atc-num{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;margin-bottom:0.75rem}
+.atc-name{font-size:1.3rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.4rem}
+.atc-cat{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem}
+.atc-desc{font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+.atc-actions{display:flex;gap:0.75rem}
+.atc-edit{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.4rem 1rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.2s}
+.atc-edit:hover{color:var(--accent);border-color:var(--accent)}
+.atc-del{background:none;border:1px solid rgba(255,77,46,0.2);color:var(--accent2);padding:0.4rem 1rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.2s}
+.atc-del:hover{background:rgba(255,77,46,0.08)}
+.atc-new-badge{position:absolute;top:1.25rem;right:1.25rem;background:rgba(255,77,46,0.1);border:1px solid rgba(255,77,46,0.25);color:var(--accent2);font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;padding:0.2rem 0.6rem;border-radius:1px;text-transform:uppercase}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:2.5rem;width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto}
+.modal h3{font-family:'Space Mono',monospace;font-size:0.9rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;color:var(--accent)}
+.modal-actions{display:flex;gap:1rem;margin-top:1.75rem}
+.modal-save{flex:1;background:var(--accent);color:#080808;border:none;padding:0.85rem;font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:background 0.2s}
+.modal-save:hover{background:var(--white)}
+.modal-cancel{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.85rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.2s}
+.modal-cancel:hover{color:var(--white);border-color:var(--dim)}
+.field textarea{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.82rem;border-radius:2px;outline:none;transition:border-color 0.2s;resize:vertical;min-height:90px;cursor:text}
+.field textarea:focus{border-color:var(--accent)}
+.field select{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.82rem;border-radius:2px;outline:none;transition:border-color 0.2s;cursor:none}
+.field select:focus{border-color:var(--accent)}
+.toggle-row{display:flex;align-items:center;gap:1rem;margin-top:1rem}
+.toggle-label{font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.toggle{appearance:none;width:40px;height:22px;background:var(--border2);border-radius:11px;position:relative;cursor:none;transition:background 0.2s}
+.toggle:checked{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#080808;border-radius:50%;top:3px;left:3px;transition:transform 0.2s}
+.toggle:checked::after{transform:translateX(18px)}
+.confirm-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.9);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border:1px solid rgba(255,77,46,0.3);border-radius:4px;padding:2.5rem;max-width:380px;text-align:center}
+.confirm-box h4{font-family:'Space Mono',monospace;font-size:0.9rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:1rem}
+.confirm-box p{font-size:0.85rem;color:var(--muted);margin-bottom:2rem;line-height:1.6}
+.confirm-actions{display:flex;gap:1rem;justify-content:center}
+.confirm-del{background:var(--accent2);color:white;border:none;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:opacity 0.2s}
+.confirm-del:hover{opacity:0.85}
+.confirm-no{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.2s}
+.confirm-no:hover{color:var(--white)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#080808;font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.75rem 1.75rem;border-radius:2px;z-index:9000;transition:transform 0.3s ease;font-weight:700}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:768px){
+  nav{padding:1.25rem 1.5rem}
+  .hero{padding:0 1.5rem 3rem}
+  .tools{padding:5rem 1.5rem}
+  .tool-row{grid-template-columns:40px 1fr;gap:1rem}
+  .tool-cat,.tool-arrow{display:none}
+  .split{grid-template-columns:1fr}
+  .split-left{border-right:none;border-bottom:1px solid var(--border);padding:3rem 1.5rem}
+  .split-right{padding:3rem 1.5rem}
+  footer{padding:2rem 1.5rem;flex-direction:column;align-items:flex-start;gap:1rem}
+  .dash-body{padding:2rem 1.25rem}
+  .admin-tool-grid{grid-template-columns:1fr}
+  .games-section{padding:5rem 1.5rem}
+  .game-grid{grid-template-columns:1fr}
+  .mine-cell{width:28px;height:28px;font-size:0.65rem}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="logo" href="#">SIRA<span class="dot">.</span></a>
+  <div class="nav-right">
+    <span class="nav-tag">Sri Lanka / Software</span>
+    <a class="nav-link" href="#games">Games</a>
+    <a class="nav-link" href="#tools">Tools</a>
+    <button class="admin-btn" onclick="openLogin()">Admin ↗</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">SIRA</div>
+  <div class="hero-eyebrow">Sri Lanka's software company</div>
+  <h1 class="hero-h1">Build<br><span class="outline">different.</span></h1>
+  <div class="hero-bottom">
+    <p class="hero-desc">Tools made for businesses that move fast. No bloat. No noise. Just software that works.</p>
+    <a class="hero-cta" href="#tools">See the tools <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee-track"></div>
+</div>
+
+<!-- TOOLS -->
+<section class="tools" id="tools">
+  <div class="tools-header reveal">
+    <div>
+      <div class="tools-label">What we build</div>
+      <h2 class="tools-title">Our <em>tools</em></h2>
+    </div>
+    <div class="tools-count" id="tools-count">07</div>
+  </div>
+  <div id="tool-list"></div>
+</section>
+
+<!-- SPLIT -->
+<div class="split">
+  <div class="split-left reveal">
+    <div class="split-eyebrow">Who we are</div>
+    <h2>Software built in Sri Lanka.<br>For Sri Lanka.</h2>
+    <p>No overseas pricing. No guesswork. SIRA tools are made by a local team that understands exactly what your business needs to grow.</p>
+    <div class="lk-flag"><div class="lk-bar"></div><span class="lk-text">Colombo, Sri Lanka</span></div>
+  </div>
+  <div class="split-right reveal">
+    <div class="split-eyebrow">By the numbers</div>
+    <div class="stat-block"><div class="stat-big">500+</div><div class="stat-label-text">Businesses using SIRA</div></div>
+    <div class="stat-block"><div class="stat-big">9</div><div class="stat-label-text">Provinces covered</div></div>
+    <div class="stat-block" style="margin-bottom:0"><div class="stat-big">24/7</div><div class="stat-label-text">Local support</div></div>
+  </div>
+</div>
+
+<!-- GAMES SECTION -->
+<section class="games-section reveal" id="games">
+  <div class="games-header">
+    <div>
+      <div class="tools-label">Take a break</div>
+      <h2 class="games-title">SIRA <em>arcade</em></h2>
+      <p class="games-sub">Three mini games built in the SIRA engine. Free to play, no install needed.</p>
+    </div>
+    <div class="tools-count" style="color:rgba(200,245,58,0.08)">03</div>
+  </div>
+  <div class="game-grid">
+    <!-- Snake -->
+    <div class="game-card reveal">
+      <div class="game-card-shine"></div>
+      <div class="game-card-num"># 001</div>
+      <span class="game-card-icon">🐍</span>
+      <div class="game-card-name">Snake.exe</div>
+      <div class="game-card-desc">Classic snake but make it dark. Eat the green pixels, don't hit the walls. Speed ramps up every 5 points.</div>
+      <div class="game-card-meta">
+        <span class="game-card-tag">Arrow keys</span>
+        <button class="game-play-btn" onclick="openGame('snake')">Play →</button>
+      </div>
+    </div>
+    <!-- Type Rush -->
+    <div class="game-card reveal">
+      <div class="game-card-shine"></div>
+      <div class="game-card-num"># 002</div>
+      <span class="game-card-icon">⌨️</span>
+      <div class="game-card-name">Type Rush</div>
+      <div class="game-card-desc">60 seconds. Type as many words as you can. Your WPM score gets logged. Beat 80 WPM and you're actually good.</div>
+      <div class="game-card-meta">
+        <span class="game-card-tag">Keyboard</span>
+        <button class="game-play-btn" onclick="openGame('typerush')">Play →</button>
+      </div>
+    </div>
+    <!-- Minesweeper -->
+    <div class="game-card reveal">
+      <div class="game-card-shine"></div>
+      <div class="game-card-num"># 003</div>
+      <span class="game-card-icon">💣</span>
+      <div class="game-card-name">Grid Breaker</div>
+      <div class="game-card-desc">Minesweeper, SIRA edition. Left-click to reveal, right-click to flag. Clear the grid without hitting a mine.</div>
+      <div class="game-card-meta">
+        <span class="game-card-tag">Mouse</span>
+        <button class="game-play-btn" onclick="openGame('mines')">Play →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTF BANNER -->
+<div style="background:#0a0a0a;border-top:1px solid #1e1e1e;border-bottom:1px solid #1e1e1e;padding:4rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:2rem">
+  <div>
+    <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:#00ff88;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.75rem">🎮 New — SIRA CTF Game</div>
+    <h2 style="font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.1;margin-bottom:0.75rem">Pay $1. Hack the challenges.<br><span style="-webkit-text-stroke:1px #f0ede8;color:transparent">Win 20% of the pool.</span></h2>
+    <p style="font-size:0.85rem;color:#555;letter-spacing:0.04em;line-height:1.7;max-width:420px">A live cybersecurity CTF — solve web, crypto, OSINT &amp; reverse engineering puzzles. Top scorer wins real money.</p>
+  </div>
+  <a href="game.html" style="display:inline-flex;align-items:center;gap:0.75rem;background:#00ff88;color:#060606;padding:1rem 2rem;text-decoration:none;font-family:'Space Mono',monospace;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;white-space:nowrap" onmouseover="this.style.background='#a8e82f'" onmouseout="this.style.background='#00ff88'">Enter CTF →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SIRA<span>.</span></div>
+  <a class="footer-email" href="mailto:hello@sira.lk">hello@sira.lk</a>
+  <div class="footer-copy">© 2024 SIRA Technologies · Sri Lanka</div>
+</footer>
+
+<!-- ===== GAME MODAL ===== -->
+<div class="game-modal" id="gameModal">
+  <div class="game-modal-inner" id="gameModalInner">
+    <div class="gm-header">
+      <span class="gm-title" id="gmTitle">Game</span>
+      <button class="gm-close" onclick="closeGame()">✕ Close</button>
+    </div>
+    <div class="gm-body" id="gmBody"></div>
+  </div>
+</div>
+
+<!-- ===== LOGIN OVERLAY ===== -->
+<div class="admin-overlay" id="loginOverlay">
+  <div class="login-panel">
+    <button class="close-btn" onclick="closeLogin()">✕</button>
+    <h2>SIRA<span style="color:var(--accent)">.</span> Admin</h2>
+    <p>// Authorised access only</p>
+    <div class="login-err" id="loginErr">Incorrect credentials. Try again.</div>
+    <div class="field"><label>Username</label><input type="text" id="loginUser" placeholder="admin" autocomplete="off"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="login-submit" onclick="doLogin()">Authenticate →</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD ===== -->
+<div class="admin-dash" id="adminDash">
+  <div class="dash-nav">
+    <div class="dash-logo">SIRA<span>.</span><small>Admin Panel</small></div>
+    <div class="dash-nav-right">
+      <span class="dash-tag" id="dashTime"></span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-header">
+      <div class="dash-title">Tools <span>Manager</span></div>
+      <button class="add-btn" onclick="openModal()">+ Add new tool</button>
+    </div>
+    <div class="admin-tool-grid" id="admin-tool-grid"></div>
+  </div>
+</div>
+
+<!-- ===== ADD/EDIT MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h3 id="modalTitle">Add new tool</h3>
+    <div class="field"><label>Tool name</label><input type="text" id="mName" placeholder="e.g. Payroll Pro"></div>
+    <div class="field"><label>Category</label>
+      <select id="mCat">
+        <option value="Finance">Finance</option>
+        <option value="Inventory">Inventory</option>
+        <option value="People">People</option>
+        <option value="Data">Data</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Security">Security</option>
+        <option value="Communication">Communication</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Description</label><textarea id="mDesc" placeholder="What does this tool do?"></textarea></div>
+    <div class="toggle-row">
+      <input type="checkbox" class="toggle" id="mNew">
+      <span class="toggle-label">Mark as New</span>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save" onclick="saveTool()">Save tool →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DELETE ===== -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h4>Delete tool?</h4>
+    <p>This removes the tool from the public site. This cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="confirm-no" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-del" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const DEFAULT_TOOLS = [
+  {id:1,name:'Billing Pro',cat:'Finance',desc:'Fast invoicing in Sinhala, Tamil or English.',isNew:false},
+  {id:2,name:'Stock Manager',cat:'Inventory',desc:'Real-time inventory control for retail and warehouses.',isNew:false},
+  {id:3,name:'HR Suite',cat:'People',desc:'Attendance, payroll, and leave — one dashboard.',isNew:false},
+  {id:4,name:'Analytics',cat:'Data',desc:'Turn sales data into readable reports instantly.',isNew:true},
+  {id:5,name:'Shop Online',cat:'Commerce',desc:'Launch your store in hours. Accept payments island-wide.',isNew:false},
+  {id:6,name:'Secure Vault',cat:'Security',desc:'Cloud backup and data security for business files.',isNew:false},
+  {id:7,name:'Payroll Engine',cat:'Finance',desc:'Automate salary calculations, EPF/ETF, and payslips.',isNew:true},
+];
+function loadTools(){const r=localStorage.getItem('sira_tools');return r?JSON.parse(r):DEFAULT_TOOLS;}
+function saveTools(t){localStorage.setItem('sira_tools',JSON.stringify(t));}
+let tools=loadTools(),editingId=null,deletingId=null;
+
+// ── CURSOR ─────────────────────────────────────────
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';});
+(function animRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=(rx-18)+'px';ring.style.top=(ry-18)+'px';requestAnimationFrame(animRing);})();
+document.addEventListener('mouseover',e=>{
+  if(e.target.matches('a,button,input,select,textarea,.tool-row,.admin-tool-card,.hero-cta,.game-card,.mine-cell')){
+    cur.style.transform='scale(2.5)';ring.style.transform='scale(1.6)';
+  }else{cur.style.transform='scale(1)';ring.style.transform='scale(1)';}
+});
+
+// ── NAV SCROLL ────────────────────────────────────
+window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scrolled',scrollY>40);});
+
+// ── REVEAL ───────────────────────────────────────
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*60);});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+
+// ── RENDER PUBLIC ───────────────────────────────
+function pad(n){return String(n).padStart(2,'0');}
+function renderPublic(){
+  document.getElementById('tools-count').textContent=pad(tools.length);
+  const list=document.getElementById('tool-list');
+  list.innerHTML=tools.map((t,i)=>`
+    <div class="tool-row reveal">
+      <span class="tool-num">${pad(i+1)}</span>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <span class="tool-name">${t.name}</span>
+        ${t.isNew?'<span class="tool-tag new">New</span>':''}
+      </div>
+      <span class="tool-cat">${t.cat}</span>
+      <span class="tool-arrow">→</span>
+    </div>
+  `).join('');
+  list.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+  const items=[...tools,...tools].map(t=>`<span class="marquee-item">${t.name} <span class="sep">·</span></span>`).join('');
+  document.getElementById('marquee-track').innerHTML=items;
+}
+
+// ── RENDER ADMIN ────────────────────────────────
+function renderAdmin(){
+  document.getElementById('admin-tool-grid').innerHTML=tools.map(t=>`
+    <div class="admin-tool-card">
+      ${t.isNew?'<div class="atc-new-badge">New</div>':''}
+      <div class="atc-num"># ${String(t.id).padStart(3,'0')}</div>
+      <div class="atc-name">${t.name}</div>
+      <div class="atc-cat">${t.cat}</div>
+      <div class="atc-desc">${t.desc||'—'}</div>
+      <div class="atc-actions">
+        <button class="atc-edit" onclick="openModal(${t.id})">Edit</button>
+        <button class="atc-del" onclick="askDelete(${t.id})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── LOGIN / LOGOUT ──────────────────────────────
+function openLogin(){document.getElementById('loginOverlay').classList.add('open');setTimeout(()=>document.getElementById('loginUser').focus(),100);}
+function closeLogin(){document.getElementById('loginOverlay').classList.remove('open');document.getElementById('loginErr').style.display='none';}
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(u==='admin'&&p==='sira2024'){
+    closeLogin();document.getElementById('adminDash').classList.add('open');renderAdmin();tickTime();
+  }else{document.getElementById('loginErr').style.display='block';document.getElementById('loginPass').value='';}
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function logout(){document.getElementById('adminDash').classList.remove('open');}
+function tickTime(){const el=document.getElementById('dashTime');if(!el)return;const n=new Date();el.textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});setTimeout(tickTime,1000);}
+
+// ── MODAL ───────────────────────────────────────
+function openModal(id=null){
+  editingId=id;
+  document.getElementById('modalTitle').textContent=id?'Edit tool':'Add new tool';
+  if(id){const t=tools.find(x=>x.id===id);document.getElementById('mName').value=t.name;document.getElementById('mCat').value=t.cat;document.getElementById('mDesc').value=t.desc||'';document.getElementById('mNew').checked=t.isNew||false;}
+  else{document.getElementById('mName').value='';document.getElementById('mCat').value='Finance';document.getElementById('mDesc').value='';document.getElementById('mNew').checked=false;}
+  document.getElementById('modalOverlay').classList.add('open');setTimeout(()=>document.getElementById('mName').focus(),100);
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editingId=null;}
+function saveTool(){
+  const name=document.getElementById('mName').value.trim();
+  if(!name){showToast('Tool name is required');return;}
+  const cat=document.getElementById('mCat').value,desc=document.getElementById('mDesc').value.trim(),isNew=document.getElementById('mNew').checked;
+  if(editingId){tools=tools.map(t=>t.id===editingId?{...t,name,cat,desc,isNew}:t);showToast('Tool updated ✓');}
+  else{const maxId=tools.reduce((m,t)=>Math.max(m,t.id),0);tools.push({id:maxId+1,name,cat,desc,isNew});showToast('Tool added ✓');}
+  saveTools(tools);renderAdmin();renderPublic();closeModal();
+}
+function askDelete(id){deletingId=id;document.getElementById('confirmOverlay').classList.add('open');}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');deletingId=null;}
+function confirmDelete(){tools=tools.filter(t=>t.id!==deletingId);saveTools(tools);renderAdmin();renderPublic();closeConfirm();showToast('Tool deleted');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ═══════════════════════════════════════════════
+//  G A M E S
+// ═══════════════════════════════════════════════
+
+let activeGame = null;
+
+function openGame(type){
+  activeGame = type;
+  const modal = document.getElementById('gameModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if(type === 'snake') initSnake();
+  else if(type === 'typerush') initTypeRush();
+  else if(type === 'mines') initMines();
+}
+function closeGame(){
+  document.getElementById('gameModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if(activeGame === 'snake') stopSnake();
+  if(activeGame === 'typerush') stopTypeRush();
+  activeGame = null;
+  document.getElementById('gmBody').innerHTML = '';
+}
+
+// ── SNAKE ───────────────────────────────────────
+let snakeInterval = null;
+function initSnake(){
+  document.getElementById('gmTitle').textContent = '🐍 Snake.exe';
+  const SIZE = 20, CELL = 22;
+  const W = SIZE, H = SIZE;
+  let snake, dir, nextDir, food, score, speed, running, gameOver;
+  
+  document.getElementById('gmBody').innerHTML = `
+    <div class="gm-score-bar">
+      <span>Score <span class="gm-score-val" id="snakeScore">0</span></span>
+      <span>Best <span class="gm-score-val" id="snakeBest">${localStorage.getItem('sira_snake_best')||0}</span></span>
+    </div>
+    <div class="gm-canvas-wrap">
+      <canvas id="snakeCanvas" width="${W*CELL}" height="${H*CELL}" style="border:1px solid #1c1c1c;border-radius:3px;background:#080808"></canvas>
+    </div>
+    <div style="text-align:center;margin-bottom:1rem">
+      <button class="gm-btn" id="snakeStartBtn" onclick="snakeStart()">Start Game →</button>
+    </div>
+    <div class="gm-controls">Arrow keys or WASD to move · Don't hit walls or yourself</div>
+  `;
+
+  const canvas = document.getElementById('snakeCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  function drawGrid(){
+    ctx.clearRect(0,0,W*CELL,H*CELL);
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    for(let x=0;x<W;x++){for(let y=0;y<H;y++){ctx.strokeRect(x*CELL,y*CELL,CELL,CELL);}}
+  }
+  function drawSnake(){
+    snake.forEach((seg,i)=>{
+      const alpha = i===0?1:0.85-((i/snake.length)*0.5);
+      ctx.fillStyle = i===0?'#c8f53a':`rgba(200,245,58,${alpha})`;
+      ctx.fillRect(seg.x*CELL+1,seg.y*CELL+1,CELL-2,CELL-2);
+      if(i===0){
+        ctx.fillStyle='#080808';
+        const eyeSize=3;
+        ctx.fillRect(seg.x*CELL+CELL-6,seg.y*CELL+5,eyeSize,eyeSize);
+        ctx.fillRect(seg.x*CELL+CELL-6,seg.y*CELL+CELL-8,eyeSize,eyeSize);
+      }
+    });
+  }
+  function drawFood(){
+    ctx.fillStyle='#ff4d2e';
+    ctx.beginPath();
+    ctx.arc(food.x*CELL+CELL/2,food.y*CELL+CELL/2,CELL/2-3,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='rgba(255,77,46,0.3)';
+    ctx.beginPath();
+    ctx.arc(food.x*CELL+CELL/2,food.y*CELL+CELL/2,CELL/2,0,Math.PI*2);
+    ctx.fill();
+  }
+  function placeFood(){
+    let f;
+    do{f={x:Math.floor(Math.random()*W),y:Math.floor(Math.random()*H)};}
+    while(snake.some(s=>s.x===f.x&&s.y===f.y));
+    food=f;
+  }
+  function drawGameOver(){
+    ctx.fillStyle='rgba(8,8,8,0.8)';
+    ctx.fillRect(0,0,W*CELL,H*CELL);
+    ctx.fillStyle='#c8f53a';
+    ctx.font='bold 22px Space Mono, monospace';
+    ctx.textAlign='center';
+    ctx.fillText('GAME OVER',W*CELL/2,H*CELL/2-16);
+    ctx.fillStyle='#555';
+    ctx.font='12px Space Mono, monospace';
+    ctx.fillText('Score: '+score,W*CELL/2,H*CELL/2+10);
+    ctx.fillText('Press Start to play again',W*CELL/2,H*CELL/2+32);
+  }
+
+  window.snakeStart = function(){
+    snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+    dir={x:1,y:0};nextDir={x:1,y:0};
+    score=0;speed=150;running=true;gameOver=false;
+    document.getElementById('snakeScore').textContent='0';
+    placeFood();
+    if(snakeInterval)clearInterval(snakeInterval);
+    snakeInterval=setInterval(tick,speed);
+  };
+
+  function tick(){
+    if(!running)return;
+    dir=nextDir;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(head.x<0||head.x>=W||head.y<0||head.y>=H||snake.some(s=>s.x===head.x&&s.y===head.y)){
+      clearInterval(snakeInterval);
+      const best=parseInt(localStorage.getItem('sira_snake_best')||0);
+      if(score>best){localStorage.setItem('sira_snake_best',score);document.getElementById('snakeBest').textContent=score;}
+      drawGrid();drawFood();drawSnake();drawGameOver();
+      running=false;return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x&&head.y===food.y){
+      score++;
+      document.getElementById('snakeScore').textContent=score;
+      placeFood();
+      if(score%5===0){clearInterval(snakeInterval);speed=Math.max(60,speed-12);snakeInterval=setInterval(tick,speed);}
+    }else{snake.pop();}
+    drawGrid();drawFood();drawSnake();
+  }
+
+  function handleKey(e){
+    const keyMap={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};
+    const nd=keyMap[e.key];
+    if(nd&&!(nd.x===-dir.x&&nd.y===-dir.y)){nextDir=nd;e.preventDefault();}
+  }
+  document.addEventListener('keydown',handleKey);
+  window._snakeKeyHandler=handleKey;
+  drawGrid();
+}
+function stopSnake(){
+  if(snakeInterval){clearInterval(snakeInterval);snakeInterval=null;}
+  if(window._snakeKeyHandler){document.removeEventListener('keydown',window._snakeKeyHandler);window._snakeKeyHandler=null;}
+}
+
+// ── TYPE RUSH ───────────────────────────────────
+let trTimer=null,trRunning=false,trTimeLeft=60,trScore=0,trChars=0,trWords=0,trCurrentWord='',trWordList=[];
+const WORD_POOL=['build','fast','pixel','clean','dark','code','forge','blade','stack','push','merge','ship','deploy','loop','node','data','flow','sync','core','grid','vault','block','cache','query','event','token','parse','fetch','await','async','render','state','route','theme','style','class','type','index','module','export','import','function','return','const','arrow','script','array','object','string','number','boolean','null','byte','hash','flag','sudo','local','global','scope','debug','test','build','patch','fork','clone','pull','push','tag','init','log','diff','status','commit','branch','rebase','stash','reset','touch','echo','curl','grep','pipe','chmod','alias','source','port','host','server','client','proxy','ssl','cert','auth','key','salt','token'];
+function getWords(n){return Array.from({length:n},()=>WORD_POOL[Math.floor(Math.random()*WORD_POOL.length)]);}
+
+function initTypeRush(){
+  document.getElementById('gmTitle').textContent = '⌨️ Type Rush';
+  trWords=getWords(80);trScore=0;trChars=0;trTimeLeft=60;trRunning=false;trCurrentWord='';
+  let wordIndex=0,charIndex=0;
+  
+  document.getElementById('gmBody').innerHTML=`
+    <div class="gm-score-bar">
+      <span>Time <span class="gm-score-val" id="trTime">60</span>s</span>
+      <span>WPM <span class="gm-score-val" id="trWPM">0</span></span>
+      <span>Correct <span class="gm-score-val" id="trCorrect">0</span></span>
+    </div>
+    <div class="tr-progress-track"><div class="tr-progress-fill" id="trProgress" style="width:100%"></div></div>
+    <div class="tr-word-display" id="trWordDisplay"></div>
+    <input class="tr-input" id="trInput" placeholder="Start typing to begin..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="tr-stats-row" id="trResults" style="display:none">
+      <div class="tr-stat"><div class="tr-stat-val" id="resFinalWPM">0</div><div class="tr-stat-label">WPM</div></div>
+      <div class="tr-stat"><div class="tr-stat-val" id="resAcc">0%</div><div class="tr-stat-label">Accuracy</div></div>
+      <div class="tr-stat"><div class="tr-stat-val" id="resWords">0</div><div class="tr-stat-label">Words</div></div>
+    </div>
+    <div style="text-align:center;margin-top:1.25rem" id="trRestartWrap" style="display:none">
+      <button class="gm-btn" onclick="initTypeRush()">Try Again →</button>
+    </div>
+    <div class="gm-controls">Type the word shown · Space or Enter to confirm · 60 seconds</div>
+  `;
+
+  let typed=[];
+  function renderWord(){
+    const w=trWords[wordIndex]||'';
+    let html='';
+    for(let i=0;i<w.length;i++){
+      if(i<typed.length){html+=`<span class="${typed[i]===w[i]?'tr-typed':'tr-typed'}" style="color:${typed[i]===w[i]?'#c8f53a':'#ff4d2e'}">${w[i]}</span>`;}
+      else if(i===typed.length){html+=`<span class="tr-current">${w[i]}</span>`;}
+      else{html+=`<span class="tr-untyped">${w[i]}</span>`;}
+    }
+    document.getElementById('trWordDisplay').innerHTML=html;
+  }
+
+  function startTimer(){
+    if(trRunning)return;
+    trRunning=true;
+    trTimer=setInterval(()=>{
+      trTimeLeft--;
+      document.getElementById('trTime').textContent=trTimeLeft;
+      document.getElementById('trProgress').style.width=(trTimeLeft/60*100)+'%';
+      if(trTimeLeft<=0){endGame();}
+    },1000);
+  }
+
+  function endGame(){
+    clearInterval(trTimer);trRunning=false;
+    const inp=document.getElementById('trInput');inp.disabled=true;
+    const wpm=Math.round(trScore);
+    const acc=trChars>0?Math.round((trScore/(trScore+(trChars-trScore))*100))||100:0;
+    document.getElementById('trResults').style.display='flex';
+    document.getElementById('resFinalWPM').textContent=wpm;
+    document.getElementById('resAcc').textContent=Math.min(100,Math.round(trScore/(wordIndex||1)*100))+'%';
+    document.getElementById('resWords').textContent=trScore;
+    document.getElementById('trRestartWrap').style.display='block';
+    const best=parseInt(localStorage.getItem('sira_typerush_best')||0);
+    if(wpm>best)localStorage.setItem('sira_typerush_best',wpm);
+  }
+
+  const inp=document.getElementById('trInput');
+  inp.addEventListener('input',e=>{
+    if(!trRunning)startTimer();
+    const val=inp.value;
+    const w=trWords[wordIndex]||'';
+    typed=val.split('');
+    renderWord();
+    const isWrong=!w.startsWith(val);
+    inp.classList.toggle('wrong',isWrong&&val.length>0);
+  });
+  inp.addEventListener('keydown',e=>{
+    if((e.key===' '||e.key==='Enter')&&inp.value.trim()){
+      e.preventDefault();
+      const val=inp.value.trim(),w=trWords[wordIndex]||'';
+      if(val===w){trScore++;trChars+=w.length;}
+      wordIndex++;typed=[];inp.value='';inp.classList.remove('wrong');
+      document.getElementById('trWPM').textContent=trScore;
+      document.getElementById('trCorrect').textContent=trScore;
+      renderWord();
+    }
+  });
+  renderWord();
+  setTimeout(()=>inp.focus(),100);
+}
+function stopTypeRush(){clearInterval(trTimer);trTimer=null;trRunning=false;trTimeLeft=60;}
+
+// ── GRID BREAKER (MINESWEEPER) ──────────────────
+let mineBoard=[],mineRows=9,mineCols=9,mineCount=10,mineFirstClick=true,mineGameOver=false,mineStartTime=null,mineTimerInterval=null;
+
+function initMines(){
+  document.getElementById('gmTitle').textContent = '💣 Grid Breaker';
+  mineRows=9;mineCols=9;mineCount=10;mineFirstClick=true;mineGameOver=false;
+  
+  document.getElementById('gmBody').innerHTML=`
+    <div class="mine-controls-row">
+      <button class="mine-diff-btn active" id="diffEasy" onclick="setMineDiff(9,9,10,'easy')">Easy</button>
+      <button class="mine-diff-btn" id="diffMed" onclick="setMineDiff(12,12,20,'med')">Medium</button>
+      <button class="mine-diff-btn" id="diffHard" onclick="setMineDiff(14,14,35,'hard')">Hard</button>
+      <button class="gm-btn" style="margin-left:auto;margin-right:0" onclick="resetMines()">↺ Reset</button>
+      <span class="mine-flag-hint" id="mineCounter">💣 ${mineCount}</span>
+    </div>
+    <div class="gm-score-bar">
+      <span>Time <span class="gm-score-val" id="mineTime">0s</span></span>
+      <span id="mineStatus" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em">Click to start · Right-click to flag</span>
+    </div>
+    <div class="mine-grid-wrap"><div class="mine-grid" id="mineGrid"></div></div>
+    <div class="gm-controls">Left-click reveal · Right-click flag · Clear all safe cells to win</div>
+  `;
+  buildMineBoard();
+}
+
+function setMineDiff(r,c,m,id){
+  mineRows=r;mineCols=c;mineCount=m;
+  ['easy','med','hard'].forEach(x=>document.getElementById('diff'+x.charAt(0).toUpperCase()+x.slice(1)).classList.remove('active'));
+  document.getElementById('diff'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+  resetMines();
+}
+
+function buildMineBoard(){
+  mineBoard=Array.from({length:mineRows},()=>Array.from({length:mineCols},()=>({mine:false,revealed:false,flagged:false,count:0})));
+  mineFirstClick=true;mineGameOver=false;
+  clearInterval(mineTimerInterval);
+  document.getElementById('mineTime').textContent='0s';
+  document.getElementById('mineCounter').textContent='💣 '+mineCount;
+  document.getElementById('mineStatus').textContent='Click to start · Right-click to flag';
+  document.getElementById('mineStatus').style.color='var(--muted)';
+  renderMineGrid();
+}
+function resetMines(){buildMineBoard();}
+
+function placeMines(skipR,skipC){
+  let placed=0;
+  while(placed<mineCount){
+    const r=Math.floor(Math.random()*mineRows),c=Math.floor(Math.random()*mineCols);
+    if(!mineBoard[r][c].mine&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){
+      mineBoard[r][c].mine=true;placed++;
+    }
+  }
+  for(let r=0;r<mineRows;r++){for(let c=0;c<mineCols;c++){
+    if(!mineBoard[r][c].mine){
+      let cnt=0;
+      for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nr<mineRows&&nc>=0&&nc<mineCols&&mineBoard[nr][nc].mine)cnt++;
+      }}
+      mineBoard[r][c].count=cnt;
+    }
+  }}
+}
+
+function revealCell(r,c){
+  if(r<0||r>=mineRows||c<0||c>=mineCols)return;
+  const cell=mineBoard[r][c];
+  if(cell.revealed||cell.flagged)return;
+  cell.revealed=true;
+  if(cell.count===0&&!cell.mine){
+    for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++)revealCell(r+dr,c+dc);}
+  }
+}
+
+function handleMineClick(r,c,e){
+  if(e)e.preventDefault();
+  if(mineGameOver)return;
+  const cell=mineBoard[r][c];
+  if(e&&e.type==='contextmenu'){
+    if(cell.revealed)return;
+    cell.flagged=!cell.flagged;
+    const flags=mineBoard.flat().filter(c=>c.flagged).length;
+    document.getElementById('mineCounter').textContent='💣 '+(mineCount-flags);
+    renderMineGrid();return;
+  }
+  if(cell.flagged||cell.revealed)return;
+  if(mineFirstClick){
+    mineFirstClick=false;
+    placeMines(r,c);
+    mineStartTime=Date.now();
+    mineTimerInterval=setInterval(()=>{
+      if(!mineGameOver)document.getElementById('mineTime').textContent=Math.floor((Date.now()-mineStartTime)/1000)+'s';
+    },500);
+  }
+  if(cell.mine){
+    mineBoard.flat().filter(c=>c.mine).forEach(c=>c.revealed=true);
+    mineBoard[r][c].boom=true;
+    mineGameOver=true;
+    clearInterval(mineTimerInterval);
+    document.getElementById('mineStatus').textContent='💥 BOOM — Better luck next time';
+    document.getElementById('mineStatus').style.color='var(--accent2)';
+    renderMineGrid();return;
+  }
+  revealCell(r,c);
+  const total=mineRows*mineCols-mineCount;
+  const revealed=mineBoard.flat().filter(c=>c.revealed&&!c.mine).length;
+  if(revealed>=total){
+    mineGameOver=true;clearInterval(mineTimerInterval);
+    const t=Math.floor((Date.now()-mineStartTime)/1000);
+    document.getElementById('mineStatus').textContent=`✓ Cleared in ${t}s — SIRA approved`;
+    document.getElementById('mineStatus').style.color='var(--accent)';
+  }
+  renderMineGrid();
+}
+
+function renderMineGrid(){
+  const grid=document.getElementById('mineGrid');
+  grid.style.gridTemplateColumns=`repeat(${mineCols},auto)`;
+  const numColors=['','mine-n1','mine-n2','mine-n3','mine-n4','mine-n5','mine-n6','mine-n7','mine-n8'];
+  grid.innerHTML=mineBoard.map((row,r)=>row.map((cell,c)=>{
+    let cls='mine-cell',content='';
+    if(cell.revealed){
+      cls+=' revealed';
+      if(cell.mine){cls+=cell.boom?' boom':' safe-reveal';content='💣';}
+      else if(cell.count>0){cls+=' '+numColors[cell.count];content=cell.count;}
+      else{cls+=' safe-reveal';}
+    }else if(cell.flagged){cls+=' flagged';content='🚩';}
+    return `<div class="${cls}" onclick="handleMineClick(${r},${c},event)" oncontextmenu="handleMineClick(${r},${c},event)">${content}</div>`;
+  }).join('')).join('');
+}
+
+// ─── INIT ───────────────────────────────────────
+renderPublic();
+
+// close game modal on backdrop click
+document.getElementById('gameModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('gameModal'))closeGame();
+});
+</script>
+</body>
+</html>
