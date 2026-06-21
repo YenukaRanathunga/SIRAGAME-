@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRA — Software for Sri Lanka</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060609;
+  --surface:#0d0d14;
+  --white:#f0ede8;
+  --dim:#2a2a3a;
+  --accent:#c8f53a;
+  --accent2:#ff4d2e;
+  --blue:#4d8cff;
+  --purple:#a855f7;
+  --muted:#555566;
+  --border:#1a1a28;
+  --border2:#252538;
+  --glow: rgba(200,245,58,0.15);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+.cursor{position:fixed;width:12px;height:12px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.1s ease,width 0.2s,height 0.2s;mix-blend-mode:difference;transform:translate(-50%,-50%)}
+.cursor-ring{position:fixed;width:40px;height:40px;border:1px solid rgba(200,245,58,0.35);border-radius:50%;pointer-events:none;z-index:9998;transition:all 0.08s ease;transform:translate(-50%,-50%)}
+.cursor.hover{width:20px;height:20px}
+.cursor-ring.hover{width:60px;height:60px;border-color:rgba(200,245,58,0.6)}
+
+/* ============================
+   NAV
+============================ */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;transition:all 0.4s}
+nav.scrolled{background:rgba(6,6,9,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700;letter-spacing:0.2em;color:var(--white);text-decoration:none;display:flex;align-items:center;gap:0.4rem}
+.logo .dot{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-link{font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);background:none;border:none;cursor:none;text-decoration:none;transition:color 0.2s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--accent);color:#060609;border:none;padding:0.55rem 1.25rem;border-radius:3px;cursor:none;font-weight:700;transition:all 0.2s}
+.nav-cta:hover{background:var(--white)}
+
+/* ============================
+   HERO — EPIC GAMES STYLE
+============================ */
+.hero{position:relative;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* Big 3D featured card spotlight */
+.hero-stage{flex:1;position:relative;perspective:1200px;perspective-origin:50% 40%}
+.hero-bg-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%, rgba(77,140,255,0.12) 0%, rgba(168,85,247,0.06) 40%, transparent 70%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;border-radius:50%;animation:particleDrift linear infinite;opacity:0}
+@keyframes particleDrift{
+  0%{transform:translateY(100vh) rotate(0deg);opacity:0}
+  10%{opacity:1}
+  90%{opacity:0.6}
+  100%{transform:translateY(-20vh) rotate(720deg);opacity:0}
+}
+
+/* FEATURED CARD CAROUSEL */
+.featured-track{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.featured-cards-3d{position:relative;width:900px;height:520px;transform-style:preserve-3d}
+.fcard{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:16px;overflow:hidden;cursor:none;transition:all 0.7s cubic-bezier(0.25,0.46,0.45,0.94);transform-style:preserve-3d;will-change:transform}
+.fcard-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.fcard-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.65) 100%)}
+.fcard-glow{position:absolute;inset:-1px;border-radius:16px;background:linear-gradient(135deg,rgba(200,245,58,0.4),transparent 50%,rgba(77,140,255,0.2));opacity:0;transition:opacity 0.4s}
+.fcard:hover .fcard-glow,.fcard.active .fcard-glow{opacity:1}
+.fcard-shine{position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 50%,rgba(255,255,255,0.02) 100%);pointer-events:none}
+.fcard-content{position:absolute;bottom:0;left:0;right:0;padding:2.5rem;z-index:2}
+.fcard-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(200,245,58,0.15);border:1px solid rgba(200,245,58,0.3);color:var(--accent);font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:20px;margin-bottom:1rem}
+.fcard-badge .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.fcard-title{font-size:2.4rem;font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:0.5rem}
+.fcard-desc{font-size:0.9rem;color:rgba(240,237,232,0.7);line-height:1.6;margin-bottom:1.5rem;max-width:420px}
+.fcard-actions{display:flex;align-items:center;gap:1rem}
+.fcard-play{display:flex;align-items:center;gap:0.65rem;background:var(--accent);color:#060609;padding:0.75rem 1.75rem;border-radius:6px;font-weight:700;font-size:0.88rem;letter-spacing:0.06em;text-transform:uppercase;border:none;cursor:none;transition:all 0.2s;font-family:'Space Mono',monospace}
+.fcard-play:hover{background:var(--white);transform:translateY(-2px)}
+.fcard-more{display:flex;align-items:center;gap:0.5rem;color:rgba(240,237,232,0.6);font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;border:none;background:none;cursor:none;transition:color 0.2s}
+.fcard-more:hover{color:var(--white)}
+
+/* card states in 3D */
+.fcard.active{transform:translateX(0) translateZ(0) rotateY(0deg);z-index:10;opacity:1}
+.fcard.prev{transform:translateX(-68%) translateZ(-200px) rotateY(18deg);z-index:5;opacity:0.55;filter:brightness(0.6)}
+.fcard.next{transform:translateX(68%) translateZ(-200px) rotateY(-18deg);z-index:5;opacity:0.55;filter:brightness(0.6)}
+.fcard.far-prev{transform:translateX(-100%) translateZ(-400px) rotateY(30deg);z-index:1;opacity:0;filter:brightness(0.3)}
+.fcard.far-next{transform:translateX(100%) translateZ(-400px) rotateY(-30deg);z-index:1;opacity:0;filter:brightness(0.3)}
+.fcard.hidden{opacity:0;z-index:0;pointer-events:none}
+
+/* HERO BOTTOM NAV */
+.hero-bottom{position:absolute;bottom:0;left:0;right:0;padding:1.5rem 3rem 2rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(0deg,rgba(6,6,9,0.9) 0%,transparent 100%)}
+.card-dots{display:flex;align-items:center;gap:0.65rem}
+.card-dot{width:28px;height:3px;background:rgba(240,237,232,0.2);border-radius:2px;cursor:none;transition:all 0.3s}
+.card-dot.active{width:48px;background:var(--accent)}
+.hero-scroll-hint{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:0.75rem}
+.hero-scroll-hint::after{content:'';display:inline-block;width:20px;height:1px;background:var(--muted);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{width:20px;opacity:0.5}50%{width:36px;opacity:1}}
+.card-nav-btns{display:flex;gap:0.5rem}
+.card-nav-btn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(240,237,232,0.15);background:rgba(0,0,0,0.4);color:var(--white);font-size:1rem;cursor:none;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px)}
+.card-nav-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,245,58,0.08)}
+
+/* ============================
+   MARQUEE
+============================ */
+.marquee-wrap{border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:0.9rem 0;background:var(--surface)}
+.marquee-track{display:flex;gap:3rem;animation:marquee 28s linear infinite;width:max-content}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee-item{font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:1.5rem}
+.marquee-sep{color:var(--accent);font-size:0.9rem}
+
+/* ============================
+   SECTION GENERAL
+============================ */
+.section-eyebrow{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem}
+.section-eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--accent)}
+
+/* ============================
+   TOOLS — 3D CARD GRID
+============================ */
+.tools-section{padding:8rem 3rem;position:relative;overflow:hidden}
+.tools-section::before{content:'TOOLS';position:absolute;right:-3rem;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Space Mono',monospace;font-size:clamp(80px,15vw,200px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,0.025);pointer-events:none;letter-spacing:-0.05em;white-space:nowrap}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4rem;gap:2rem;flex-wrap:wrap}
+.section-title{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-0.05em;line-height:1}
+.section-title .outline{-webkit-text-stroke:1px var(--white);color:transparent}
+.section-count{font-family:'Space Mono',monospace;font-size:5rem;font-weight:700;color:var(--border2);letter-spacing:-0.05em}
+
+/* 3D TOOL CARDS GRID */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.tool-card-3d{perspective:800px}
+.tool-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:2rem;cursor:none;position:relative;overflow:hidden;transition:transform 0.1s ease,box-shadow 0.3s;transform-style:preserve-3d;will-change:transform}
+.tool-card::before{content:'';position:absolute;inset:0;border-radius:12px;background:var(--card-glow,radial-gradient(circle at 50% 0%,rgba(200,245,58,0.07),transparent 70%));opacity:0;transition:opacity 0.3s}
+.tool-card:hover::before{opacity:1}
+.tool-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem}
+.tool-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--icon-bg,rgba(200,245,58,0.08));border:1px solid var(--icon-border,rgba(200,245,58,0.15))}
+.tool-num{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em}
+.tool-name{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.4rem;transition:color 0.2s}
+.tool-card:hover .tool-name{color:var(--accent)}
+.tool-cat{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1rem}
+.tool-desc{font-size:0.85rem;color:#666;line-height:1.7;margin-bottom:1.5rem}
+.tool-card-footer{display:flex;align-items:center;justify-content:space-between}
+.tool-tag{display:inline-block;background:rgba(200,245,58,0.08);border:1px solid rgba(200,245,58,0.18);color:var(--accent);font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:20px;text-transform:uppercase}
+.tool-tag.new{background:rgba(255,77,46,0.08);border-color:rgba(255,77,46,0.2);color:var(--accent2)}
+.tool-arrow{color:var(--dim);font-size:1.1rem;transition:color 0.2s,transform 0.2s}
+.tool-card:hover .tool-arrow{color:var(--accent);transform:translateX(5px)}
+/* highlight lines on cards */
+.card-highlight{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity 0.3s}
+.tool-card:hover .card-highlight{opacity:0.6}
+
+/* ============================
+   SPLIT — WHO WE ARE
+============================ */
+.split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border)}
+.split-left{padding:6rem 3rem;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.split-left::after{content:'LK';position:absolute;right:-1.5rem;bottom:-2rem;font-family:'Space Mono',monospace;font-size:8rem;font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(200,245,58,0.05);pointer-events:none}
+.split-right{padding:6rem 3rem;display:flex;flex-direction:column;justify-content:center;gap:3rem}
+.stat-block{position:relative;padding:2rem;background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden;transition:border-color 0.3s,transform 0.3s}
+.stat-block:hover{border-color:rgba(200,245,58,0.25);transform:translateY(-3px)}
+.stat-block::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.3}
+.stat-big{font-family:'Space Mono',monospace;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-0.05em;line-height:1;color:var(--accent);margin-bottom:0.35rem}
+.stat-label-text{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+.split-left h2{font-size:clamp(2rem,4vw,3.2rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:1.75rem}
+.split-left p{font-size:0.92rem;color:#777;line-height:1.8;max-width:380px;margin-bottom:2rem}
+.lk-flag{display:flex;align-items:center;gap:0.75rem}
+.lk-bar{height:3px;width:48px;background:linear-gradient(90deg,#8D153A 33%,#F4C430 33%,#F4C430 66%,#006400 66%)}
+.lk-text{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+
+/* ============================
+   GAMES — EPIC STORE STYLE
+============================ */
+.games-section{padding:8rem 3rem;border-top:1px solid var(--border);position:relative;overflow:hidden}
+.games-section::before{content:'ARCADE';position:absolute;left:-3rem;top:50%;transform:translateY(-50%) rotate(-90deg);font-family:'Space Mono',monospace;font-size:clamp(60px,10vw,140px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(200,245,58,0.035);pointer-events:none;white-space:nowrap}
+
+/* GAME CARDS — big store tiles */
+.game-store-grid{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:280px 280px;gap:1.5rem;margin-top:4rem}
+.gstore-card{border-radius:14px;overflow:hidden;cursor:pointer;position:relative;transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.4s;background:#0a0a0f}
+.gstore-card:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 40px var(--card-glow-col,rgba(200,245,58,0.1))}
+.gstore-card.main{grid-row:1/3}
+.gc-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform 0.6s ease}
+.gstore-card:hover .gc-bg{transform:scale(1.05)}
+.gc-grad{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.2) 55%,transparent 100%)}
+.gc-content{position:absolute;bottom:0;left:0;right:0;padding:1.75rem;z-index:2}
+.gc-tag{display:inline-block;background:rgba(200,245,58,0.15);border:1px solid rgba(200,245,58,0.3);color:var(--accent);font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;padding:0.25rem 0.7rem;border-radius:20px;margin-bottom:0.75rem;text-transform:uppercase}
+.gc-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.4rem}
+.gc-desc{font-size:0.8rem;color:rgba(240,237,232,0.65);line-height:1.55;margin-bottom:1rem}
+.gc-play{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 1.1rem;border-radius:6px;transition:all 0.2s;cursor:none;font-weight:700}
+.gc-play:hover{background:var(--accent);border-color:var(--accent);color:#060609}
+.gstore-card.mini .gc-title{font-size:1.2rem}
+.gstore-card.mini .gc-desc{display:none}
+
+/* GAME MODAL */
+.game-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.92);backdrop-filter:blur(16px);align-items:center;justify-content:center;padding:1.5rem}
+.game-modal.open{display:flex}
+.gm-inner{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;position:relative}
+.gm-header{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;border-bottom:1px solid var(--border)}
+.gm-title{font-family:'Space Mono',monospace;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)}
+.gm-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:none;transition:color 0.2s;font-family:'Space Mono',monospace}
+.gm-close:hover{color:var(--white)}
+.gm-body{padding:2rem}
+.gm-score-bar{display:flex;align-items:center;gap:2rem;margin-bottom:1.5rem;font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);letter-spacing:0.1em;flex-wrap:wrap}
+.gm-score-val{color:var(--accent);font-size:1.1rem;font-weight:700}
+.gm-canvas-wrap{display:flex;justify-content:center;margin-bottom:1.5rem}
+canvas{display:block;image-rendering:pixelated}
+.gm-controls{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.08em;text-align:center;line-height:2}
+.gm-btn{font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#060609;background:var(--accent);border:none;padding:0.6rem 1.4rem;border-radius:6px;cursor:none;transition:background 0.2s;font-weight:700;margin-right:0.5rem}
+.gm-btn:hover{background:var(--white)}
+.gm-btn.secondary{background:none;border:1px solid var(--border2);color:var(--muted);color:var(--muted)}
+.gm-btn.secondary:hover{color:var(--white);border-color:var(--dim)}
+/* TYPE RUSH */
+.tr-word-display{font-family:'Space Mono',monospace;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;letter-spacing:-0.02em;text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;color:var(--white);transition:color 0.15s}
+.tr-word-display.correct{color:var(--accent)}
+.tr-word-display.wrong{color:var(--accent2)}
+.tr-typed{color:var(--accent)}.tr-untyped{color:#444}.tr-current{color:var(--white);border-bottom:2px solid var(--accent)}
+.tr-input{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:1rem 1.25rem;font-family:'Space Mono',monospace;font-size:1.1rem;border-radius:6px;outline:none;transition:border-color 0.2s;letter-spacing:0.06em;cursor:text;text-align:center}
+.tr-input:focus{border-color:var(--accent)}
+.tr-input.wrong{border-color:var(--accent2)}
+.tr-progress-track{height:3px;background:var(--border2);border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
+.tr-progress-fill{height:100%;background:var(--accent);transition:width 0.1s linear;border-radius:2px}
+.tr-stats-row{display:flex;gap:2rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.tr-stat{text-align:center}
+.tr-stat-val{font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent)}
+.tr-stat-label{font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+/* MINESWEEPER */
+.mine-grid-wrap{overflow-x:auto;display:flex;justify-content:center;margin-bottom:1.5rem}
+.mine-grid{display:inline-grid;gap:3px;padding:1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+.mine-cell{width:34px;height:34px;background:#111;border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;cursor:none;transition:background 0.15s;user-select:none}
+.mine-cell:hover{background:#1a1a1a}
+.mine-cell.revealed{background:var(--bg);border-color:var(--border);cursor:default}
+.mine-cell.flagged{background:rgba(255,77,46,0.08);border-color:rgba(255,77,46,0.3)}
+.mine-cell.boom{background:rgba(255,77,46,0.15);border-color:var(--accent2)}
+.mine-cell.safe-reveal{background:rgba(200,245,58,0.06);border-color:rgba(200,245,58,0.15)}
+.mine-n1{color:#5b9cf6}.mine-n2{color:var(--accent)}.mine-n3{color:var(--accent2)}
+.mine-n4{color:#a855f7}.mine-n5{color:#ef4444}.mine-n6{color:#06b6d4}.mine-n7{color:#f59e0b}.mine-n8{color:#888}
+.mine-controls-row{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.mine-diff-btn{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;background:none;border:1px solid var(--border2);color:var(--muted);padding:0.4rem 0.85rem;border-radius:4px;cursor:none;transition:all 0.2s}
+.mine-diff-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(200,245,58,0.06)}
+
+/* CTF BANNER */
+.ctf-banner{background:linear-gradient(135deg,rgba(0,255,136,0.04) 0%,rgba(0,0,0,0) 50%,rgba(77,140,255,0.04) 100%);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:5rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:2rem;position:relative;overflow:hidden}
+.ctf-banner::before{content:'CTF';position:absolute;right:5rem;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:clamp(80px,15vw,200px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(0,255,136,0.04);pointer-events:none}
+.ctf-label{font-family:'Space Mono',monospace;font-size:0.68rem;color:#00ff88;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.65rem}
+.ctf-label::before{content:'';width:8px;height:8px;background:#00ff88;border-radius:50%;animation:pulse 1.5s ease-in-out infinite}
+.ctf-h{font-size:clamp(1.6rem,3vw,2.8rem);font-weight:700;letter-spacing:-0.04em;line-height:1.1;margin-bottom:0.75rem}
+.ctf-h span{-webkit-text-stroke:1px var(--white);color:transparent}
+.ctf-p{font-size:0.88rem;color:#555;line-height:1.7;max-width:420px}
+.ctf-cta{display:inline-flex;align-items:center;gap:0.75rem;background:#00ff88;color:#060609;padding:1rem 2rem;text-decoration:none;font-family:'Space Mono',monospace;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:6px;white-space:nowrap;transition:all 0.2s;border:none;cursor:none}
+.ctf-cta:hover{background:var(--white);transform:translateY(-2px)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem}
+.footer-logo{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;letter-spacing:0.2em}
+.footer-logo span{color:var(--accent)}
+.footer-copy{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.1em}
+.footer-email{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid var(--dim);transition:all 0.2s}
+.footer-email:hover{color:var(--accent);border-color:var(--accent)}
+
+/* REVEAL */
+.reveal{opacity:1;transform:none;transition:opacity 0.8s ease,transform 0.8s ease}
+.reveal.hidden-init{opacity:0;transform:translateY(28px)}
+.reveal.visible{opacity:1;transform:none}
+
+/* MOUSE PARALLAX layer */
+[data-depth]{transition:transform 0.05s linear;will-change:transform}
+
+/* ============================
+   ADMIN PANEL (kept from original)
+============================ */
+.admin-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center}
+.admin-overlay.open{display:flex}
+.login-panel{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:3rem;width:100%;max-width:420px;position:relative}
+.login-panel h2{font-family:'Space Mono',monospace;font-size:1.1rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem}
+.login-panel p{font-size:0.82rem;color:var(--muted);margin-bottom:2.5rem;font-family:'Space Mono',monospace;letter-spacing:0.06em}
+.login-err{color:var(--accent2);font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;margin-bottom:1rem;display:none}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem}
+.field input{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.88rem;border-radius:6px;outline:none;transition:border-color 0.2s;cursor:text}
+.field input:focus{border-color:var(--accent)}
+.login-submit{width:100%;background:var(--accent);color:#060609;border:none;padding:0.9rem;font-family:'Space Mono',monospace;font-size:0.82rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border-radius:6px;cursor:none;transition:background 0.2s;margin-top:0.5rem}
+.login-submit:hover{background:var(--white)}
+.close-btn{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:none;transition:color 0.2s}
+.close-btn:hover{color:var(--white)}
+.admin-dash{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.admin-dash.open{display:block}
+.dash-nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2.5rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
+.dash-logo{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;letter-spacing:0.2em}
+.dash-logo span{color:var(--accent)}
+.dash-logo small{color:var(--muted);font-size:0.65rem;margin-left:0.75rem}
+.dash-nav-right{display:flex;gap:1rem;align-items:center}
+.logout-btn{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);background:none;border:1px solid rgba(255,77,46,0.25);padding:0.4rem 0.85rem;cursor:none;border-radius:4px;transition:all 0.2s}
+.logout-btn:hover{background:rgba(255,77,46,0.08)}
+.dash-body{padding:3rem 2.5rem;max-width:1100px;margin:0 auto}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem;flex-wrap:wrap;gap:1.5rem}
+.dash-title{font-size:2rem;font-weight:700;letter-spacing:-0.04em}
+.dash-title span{color:var(--accent)}
+.add-btn{display:flex;align-items:center;gap:0.65rem;background:var(--accent);color:#060609;border:none;padding:0.75rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:6px;cursor:none;transition:background 0.2s}
+.add-btn:hover{background:var(--white)}
+.admin-tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.admin-tool-card{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:1.75rem;position:relative;transition:border-color 0.2s}
+.admin-tool-card:hover{border-color:var(--dim)}
+.atc-num{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;margin-bottom:0.75rem}
+.atc-name{font-size:1.3rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.4rem}
+.atc-cat{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem}
+.atc-desc{font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+.atc-actions{display:flex;gap:0.75rem}
+.atc-edit{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.4rem 1rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:4px;cursor:none;transition:all 0.2s}
+.atc-edit:hover{color:var(--accent);border-color:var(--accent)}
+.atc-del{background:none;border:1px solid rgba(255,77,46,0.2);color:var(--accent2);padding:0.4rem 1rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:4px;cursor:none;transition:all 0.2s}
+.atc-del:hover{background:rgba(255,77,46,0.08)}
+.atc-new-badge{position:absolute;top:1.25rem;right:1.25rem;background:rgba(255,77,46,0.1);border:1px solid rgba(255,77,46,0.25);color:var(--accent2);font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;padding:0.2rem 0.6rem;border-radius:4px;text-transform:uppercase}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:2.5rem;width:100%;max-width:520px;position:relative}
+.modal-box h3{font-family:'Space Mono',monospace;font-size:0.9rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;color:var(--accent)}
+.modal-actions{display:flex;gap:0.75rem;margin-top:1.5rem}
+.cancel-btn{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.7rem 1.4rem;font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:6px;cursor:none;transition:all 0.2s}
+.cancel-btn:hover{color:var(--white);border-color:var(--dim)}
+.save-btn{background:var(--accent);color:#060609;border:none;padding:0.7rem 1.4rem;font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:6px;cursor:none;transition:background 0.2s;font-weight:700}
+.save-btn:hover{background:var(--white)}
+textarea{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.82rem;border-radius:6px;outline:none;resize:vertical;transition:border-color 0.2s;cursor:text}
+textarea:focus{border-color:var(--accent)}
+select{width:100%;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.8rem 1rem;font-family:'Space Mono',monospace;font-size:0.82rem;border-radius:6px;outline:none;transition:border-color 0.2s;appearance:none;cursor:none}
+select:focus{border-color:var(--accent)}
+
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
+  .featured-cards-3d{width:calc(100vw - 3rem);height:320px}
+  .fcard.prev,.fcard.far-prev{transform:translateX(-80%) translateZ(-100px) rotateY(12deg);opacity:0.3}
+  .fcard.next,.fcard.far-next{transform:translateX(80%) translateZ(-100px) rotateY(-12deg);opacity:0.3}
+  .fcard-title{font-size:1.6rem}
+  .tools-section,.games-section{padding:5rem 1.5rem}
+  .section-head{flex-direction:column;gap:1rem}
+  .game-store-grid{grid-template-columns:1fr;grid-template-rows:auto}
+  .gstore-card.main{grid-row:auto}
+  .split{grid-template-columns:1fr;border-top:none}
+  .split-left{border-right:none;border-bottom:1px solid var(--border);padding:4rem 1.5rem}
+  .split-right{padding:4rem 1.5rem;gap:1.25rem}
+  .ctf-banner{padding:3rem 1.5rem;flex-direction:column}
+  footer{padding:2rem 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="logo" href="#">SIRA<span class="dot">.</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="#tools">Tools</a>
+    <a class="nav-link" href="#games">Arcade</a>
+
+    <button class="nav-cta" onclick="openAdmin()">Admin ↗</button>
+  </div>
+</nav>
+
+<!-- ============================
+     HERO — 3D EPIC STYLE
+============================ -->
+<section class="hero" id="hero">
+  <div class="hero-bg-glow"></div>
+  <div class="hero-particles" id="particles"></div>
+
+  <div class="hero-stage">
+    <div class="featured-track">
+      <div class="featured-cards-3d" id="featuredCards">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="card-dots" id="cardDots"></div>
+    <span class="hero-scroll-hint">Scroll to explore</span>
+    <div class="card-nav-btns">
+      <button class="card-nav-btn" id="prevBtn" onclick="carouselMove(-1)">←</button>
+      <button class="card-nav-btn" id="nextBtn" onclick="carouselMove(1)">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<!-- TOOLS -->
+<section class="tools-section" id="tools">
+  <div class="section-head reveal">
+    <div>
+      <div class="section-eyebrow">What we build</div>
+      <h2 class="section-title">Our <span class="outline">tools</span></h2>
+    </div>
+    <div class="section-count" id="toolsCount">07</div>
+  </div>
+  <div class="tool-grid" id="toolGrid"></div>
+</section>
+
+
+<!-- GAMES — EPIC STORE GRID -->
+<section class="games-section" id="games">
+  <div class="section-head reveal">
+    <div>
+      <div class="section-eyebrow">Take a break</div>
+      <h2 class="section-title">SIRA <span class="outline">arcade</span></h2>
+    </div>
+    <div class="section-count" style="color:rgba(200,245,58,0.06)">03</div>
+  </div>
+  <div class="game-store-grid">
+    <!-- Snake — big main tile -->
+    <div class="gstore-card main" style="--card-glow-col:rgba(200,245,58,0.12);cursor:pointer" onclick="openGame('snake')">
+      <div class="gc-bg" style="position:absolute;inset:0;background:linear-gradient(135deg,#0a1a0a 0%,#0d2b0d 30%,#0a1a0a 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;opacity:0.18">🐍</div>
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(200,245,58,0.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(200,245,58,0.04) 40px)"></div>
+      </div>
+      <div class="gc-grad"></div>
+      <div class="gc-content">
+        <div class="gc-tag">Arrow keys</div>
+        <div class="gc-title">Snake.exe</div>
+        <div class="gc-desc">Classic snake but make it dark. Eat the green pixels, don't hit the walls. Speed ramps up every 5 points.</div>
+        <button class="gc-play" onclick="event.stopPropagation();openGame('snake')">▶ Play now</button>
+      </div>
+    </div>
+    <!-- Type Rush -->
+    <div class="gstore-card mini" style="--card-glow-col:rgba(77,140,255,0.15);cursor:pointer" onclick="openGame('typerush')">
+      <div class="gc-bg" style="position:absolute;inset:0;background:linear-gradient(135deg,#080d1a 0%,#0d1528 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4rem;opacity:0.18">⌨️</div>
+      </div>
+      <div class="gc-grad"></div>
+      <div class="gc-content">
+        <div class="gc-tag" style="background:rgba(77,140,255,0.15);border-color:rgba(77,140,255,0.3);color:var(--blue)">Keyboard</div>
+        <div class="gc-title">Type Rush</div>
+        <button class="gc-play" onclick="event.stopPropagation();openGame('typerush')">▶ Play</button>
+      </div>
+    </div>
+    <!-- Minesweeper -->
+    <div class="gstore-card mini" style="--card-glow-col:rgba(255,77,46,0.12);cursor:pointer" onclick="openGame('mines')">
+      <div class="gc-bg" style="position:absolute;inset:0;background:linear-gradient(135deg,#1a0808 0%,#2a0d0d 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4rem;opacity:0.18">💣</div>
+      </div>
+      <div class="gc-grad"></div>
+      <div class="gc-content">
+        <div class="gc-tag" style="background:rgba(255,77,46,0.12);border-color:rgba(255,77,46,0.25);color:var(--accent2)">Mouse</div>
+        <div class="gc-title">Grid Breaker</div>
+        <button class="gc-play" onclick="event.stopPropagation();openGame('mines')">▶ Play</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GAME MODAL -->
+<div class="game-modal" id="gameModal">
+  <div class="gm-inner">
+    <div class="gm-header">
+      <span class="gm-title" id="gmTitle">GAME</span>
+      <button class="gm-close" onclick="closeGame()">✕ close</button>
+    </div>
+    <div class="gm-body" id="gmBody"></div>
+  </div>
+</div>
+
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SIRA<span>.</span></div>
+  <a class="footer-email" href="mailto:hello@sira.lk">hello@sira.lk</a>
+  <div class="footer-copy">© 2025 SIRA · Colombo, Sri Lanka</div>
+</footer>
+
+<!-- ADMIN OVERLAY -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="login-panel">
+    <button class="close-btn" onclick="closeAdmin()">✕</button>
+    <h2>Admin Access</h2>
+    <p>// sira.system.auth</p>
+    <div class="login-err" id="loginErr">// access denied — invalid credentials</div>
+    <div class="field"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
+    <div class="field"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-submit" onclick="doLogin()">Authenticate →</button>
+  </div>
+</div>
+<div class="admin-dash" id="adminDash">
+  <div class="dash-nav">
+    <div class="dash-logo">SIRA<span>.</span><small>// admin</small></div>
+    <div class="dash-nav-right">
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-header">
+      <div class="dash-title">Tools <span id="dashCount"></span></div>
+      <button class="add-btn" onclick="openModal()">+ Add tool</button>
+    </div>
+    <div class="admin-tool-grid" id="adminGrid"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h3 id="modalTitle">New Tool</h3>
+    <div class="field"><label>Name</label><input type="text" id="fName" placeholder="Tool name"></div>
+    <div class="field"><label>Category</label>
+      <select id="fCat"><option>SaaS</option><option>Analytics</option><option>Communication</option><option>Finance</option><option>Operations</option><option>Security</option></select>
+    </div>
+    <div class="field"><label>Description</label><textarea id="fDesc" rows="3" placeholder="What does this tool do?"></textarea></div>
+    <div class="field"><label>Status</label>
+      <select id="fStatus"><option value="">Active</option><option value="new">New</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="save-btn" onclick="saveTool()">Save tool</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────
+const DEFAULT_TOOLS = [
+  {id:1,name:'SIRA Invoicer',cat:'Finance',desc:'Generate, send and track invoices in minutes. Built for Sri Lankan tax compliance.',status:''},
+  {id:2,name:'SIRA Comms',cat:'Communication',desc:'Internal messaging for your team. Threads, channels, file sharing — no external dependencies.',status:'new'},
+  {id:3,name:'SIRA Desk',cat:'Operations',desc:'Customer support ticket system. Simple, fast, designed for small teams.',status:''},
+  {id:4,name:'SIRA Analytics',cat:'Analytics',desc:'See how your business is performing. Real metrics, no vanity numbers.',status:''},
+  {id:5,name:'SIRA Pay',cat:'Finance',desc:'Accept online payments from local banks and cards. Integrates with your site in one line.',status:'new'},
+  {id:6,name:'SIRA HR',cat:'Operations',desc:'Leave, payroll, and employee records. Everything in one place, fully offline-capable.',status:''},
+  {id:7,name:'SIRA Guard',cat:'Security',desc:'Monitor who has access to what across your team. Audit logs, role control, breach alerts.',status:''},
+];
+const ICON_MAP={'Finance':'💳','Analytics':'📊','Communication':'💬','Operations':'⚙️','Security':'🛡️','SaaS':'🔧'};
+const ICON_COLOR={'Finance':['rgba(200,245,58,0.08)','rgba(200,245,58,0.2)'],'Analytics':['rgba(77,140,255,0.08)','rgba(77,140,255,0.2)'],'Communication':['rgba(168,85,247,0.08)','rgba(168,85,247,0.2)'],'Operations':['rgba(255,160,50,0.08)','rgba(255,160,50,0.2)'],'Security':['rgba(255,77,46,0.08)','rgba(255,77,46,0.2)'],'SaaS':['rgba(200,245,58,0.08)','rgba(200,245,58,0.2)']};
+
+let tools = JSON.parse(localStorage.getItem('sira_tools')||'null') || JSON.parse(JSON.stringify(DEFAULT_TOOLS));
+let editId = null;
+
+function saveTools(){localStorage.setItem('sira_tools',JSON.stringify(tools))}
+
+// ─── FEATURED CARDS DATA ─────────────────────────
+const FEATURED = [
+  {
+    title:'SIRA Invoicer',
+    badge:'Most popular',
+    desc:'Generate, send and track invoices in minutes. Built for Sri Lankan tax compliance.',
+    bg:'linear-gradient(135deg,#0a1025 0%,#0d1840 40%,#091022 100%)',
+    accent:'#4d8cff',
+    action:'See pricing →',
+  },
+  {
+    title:'SIRA Pay',
+    badge:'New release',
+    desc:'Accept online payments from local banks and cards. One integration, done.',
+    bg:'linear-gradient(135deg,#0f1a0a 0%,#1a2d10 40%,#0a150a 100%)',
+    accent:'#c8f53a',
+    action:'Try for free →',
+  },
+  {
+    title:'SIRA Guard',
+    badge:'Security',
+    desc:'Monitor access, audit logs, breach alerts. Built for teams that move fast.',
+    bg:'linear-gradient(135deg,#1a0808 0%,#2d1010 40%,#150808 100%)',
+    accent:'#ff4d2e',
+    action:'Learn more →',
+  },
+  {
+    title:'SIRA Analytics',
+    badge:'Insights',
+    desc:'Real metrics for your Sri Lankan business. No vanity numbers, no bloat.',
+    bg:'linear-gradient(135deg,#10080f 0%,#1e0d28 40%,#10080f 100%)',
+    accent:'#a855f7',
+    action:'View demo →',
+  },
+];
+
+// ─── CAROUSEL ────────────────────────────────────
+let currentCard = 0;
+let autoSlide;
+
+function getCardClass(i){
+  const len = FEATURED.length;
+  const diff = ((i - currentCard) % len + len) % len;
+  if(diff===0) return 'active';
+  if(diff===1) return 'next';
+  if(diff===len-1) return 'prev';
+  if(diff===2) return 'far-next';
+  if(diff===len-2) return 'far-prev';
+  return 'hidden';
+}
+
+function buildCarousel(){
+  const wrap = document.getElementById('featuredCards');
+  const dotsWrap = document.getElementById('cardDots');
+  wrap.innerHTML = '';
+  dotsWrap.innerHTML = '';
+
+  FEATURED.forEach((f,i)=>{
+    const card = document.createElement('div');
+    card.className = `fcard ${getCardClass(i)}`;
+    card.onclick = () => {
+      if(getCardClass(i)==='next') carouselMove(1);
+      else if(getCardClass(i)==='prev') carouselMove(-1);
+    };
+    card.innerHTML = `
+      <div class="fcard-bg" style="background:${f.bg}">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,${f.accent}22,transparent 60%)"></div>
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 60px,${f.accent}06 61px)"></div>
+      </div>
+      <div class="fcard-overlay"></div>
+      <div class="fcard-glow" style="background:linear-gradient(135deg,${f.accent}55,transparent 50%,rgba(77,140,255,0.2))"></div>
+      <div class="fcard-shine"></div>
+      <div class="fcard-content">
+        <div class="fcard-badge"><span class="dot"></span>${f.badge}</div>
+        <div class="fcard-title">${f.title}</div>
+        <div class="fcard-desc">${f.desc}</div>
+        <div class="fcard-actions">
+          <button class="fcard-play" onclick="event.stopPropagation()" style="background:${f.accent};color:#060609">${f.action}</button>
+          <button class="fcard-more" onclick="event.stopPropagation()">View details</button>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(card);
+
+    const dot = document.createElement('div');
+    dot.className = `card-dot ${i===currentCard?'active':''}`;
+    dot.onclick = () => goToCard(i);
+    dotsWrap.appendChild(dot);
+  });
+}
+
+function updateCarousel(){
+  const cards = document.querySelectorAll('.fcard');
+  const dots = document.querySelectorAll('.card-dot');
+  cards.forEach((c,i)=>{
+    c.className = `fcard ${getCardClass(i)}`;
+  });
+  dots.forEach((d,i)=>{
+    d.className = `card-dot ${i===currentCard?'active':''}`;
+  });
+}
+
+function carouselMove(dir){
+  currentCard = (currentCard + dir + FEATURED.length) % FEATURED.length;
+  updateCarousel();
+  resetAutoSlide();
+}
+
+function goToCard(i){
+  currentCard = i;
+  updateCarousel();
+  resetAutoSlide();
+}
+
+function resetAutoSlide(){
+  clearInterval(autoSlide);
+  autoSlide = setInterval(()=>carouselMove(1), 5000);
+}
+
+// ─── PARTICLES ───────────────────────────────────
+function buildParticles(){
+  const wrap = document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*3+1;
+    const x = Math.random()*100;
+    const dur = Math.random()*15+10;
+    const delay = Math.random()*15;
+    const colors = ['#c8f53a','#4d8cff','#a855f7','#ff4d2e'];
+    const col = colors[Math.floor(Math.random()*colors.length)];
+    p.style.cssText=`width:${size}px;height:${size}px;left:${x}%;background:${col};animation-duration:${dur}s;animation-delay:-${delay}s;filter:blur(${Math.random()*1}px)`;
+    wrap.appendChild(p);
+  }
+}
+
+// ─── MARQUEE ─────────────────────────────────────
+const MARQUEE_ITEMS=['SIRA Invoicer','Finance','SIRA Pay','Payments','SIRA Comms','Messaging','SIRA Desk','Support','SIRA Analytics','Data','SIRA HR','People ops','SIRA Guard','Security'];
+function buildMarquee(){
+  const track = document.getElementById('marqueeTrack');
+  const doubled = [...MARQUEE_ITEMS,...MARQUEE_ITEMS];
+  track.innerHTML = doubled.map((t,i)=>`<span class="marquee-item">${t}${i%2===0?`<span class="marquee-sep">✦</span>`:''}</span>`).join('');
+}
+
+// ─── TOOL GRID ────────────────────────────────────
+function renderTools(){
+  const grid = document.getElementById('toolGrid');
+  document.getElementById('toolsCount').textContent = String(tools.length).padStart(2,'0');
+  grid.innerHTML = tools.map((t,i)=>{
+    const [ibg,iborder] = ICON_COLOR[t.cat]||ICON_COLOR['SaaS'];
+    return `
+    <div class="tool-card-3d">
+      <div class="tool-card" data-index="${i}" onmousemove="tiltCard(this,event)" onmouseleave="resetTilt(this)">
+        <div class="card-highlight"></div>
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:${ibg};border-color:${iborder}">${ICON_MAP[t.cat]||'🔧'}</div>
+          <span class="tool-num"># ${String(i+1).padStart(3,'0')}</span>
+        </div>
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-cat">${t.cat}</div>
+        <div class="tool-desc">${t.desc}</div>
+        <div class="tool-card-footer">
+          <span class="tool-tag${t.status==='new'?' new':''}">${t.status==='new'?'New':'Available'}</span>
+          <span class="tool-arrow">→</span>
+        </div>
+      </div>
+    </div>
+    `;
+  }).join('');
+  grid.querySelectorAll('.tool-card').forEach(c=>{
+    c.addEventListener('mouseenter',()=>{cursorEl.classList.add('hover');ringEl.classList.add('hover')});
+    c.addEventListener('mouseleave',()=>{cursorEl.classList.remove('hover');ringEl.classList.remove('hover')});
+  });
+}
+
+function tiltCard(el,e){
+  const r = el.getBoundingClientRect();
+  const x = (e.clientX-r.left)/r.width - 0.5;
+  const y = (e.clientY-r.top)/r.height - 0.5;
+  el.style.transform = `perspective(600px) rotateX(${-y*10}deg) rotateY(${x*10}deg) translateZ(8px)`;
+  el.style.boxShadow = `${-x*20}px ${-y*20}px 40px rgba(0,0,0,0.3), 0 0 30px rgba(200,245,58,0.05)`;
+}
+function resetTilt(el){
+  el.style.transform='';
+  el.style.boxShadow='';
+}
+
+// ─── ADMIN ───────────────────────────────────────
+const ADMIN_USER='admin', ADMIN_PASS='sira2025';
+function openAdmin(){document.getElementById('adminOverlay').classList.add('open')}
+function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open');document.getElementById('loginErr').style.display='none'}
+function doLogin(){
+  const u=document.getElementById('adminUser').value.trim();
+  const p=document.getElementById('adminPass').value;
+  if(u===ADMIN_USER&&p===ADMIN_PASS){
+    document.getElementById('adminOverlay').classList.remove('open');
+    renderAdminDash();
+    document.getElementById('adminDash').classList.add('open');
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+function doLogout(){document.getElementById('adminDash').classList.remove('open')}
+function renderAdminDash(){
+  document.getElementById('dashCount').textContent=`(${tools.length})`;
+  document.getElementById('adminGrid').innerHTML=tools.map((t,i)=>`
+    <div class="admin-tool-card">
+      ${t.status==='new'?'<span class="atc-new-badge">New</span>':''}
+      <div class="atc-num"># ${String(i+1).padStart(3,'0')}</div>
+      <div class="atc-name">${t.name}</div>
+      <div class="atc-cat">${t.cat}</div>
+      <div class="atc-desc">${t.desc}</div>
+      <div class="atc-actions">
+        <button class="atc-edit" onclick="openModal(${t.id})">Edit</button>
+        <button class="atc-del" onclick="deleteTool(${t.id})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+function openModal(id=null){
+  editId=id;
+  document.getElementById('modalTitle').textContent=id?'Edit Tool':'New Tool';
+  const t=id?tools.find(x=>x.id===id):null;
+  document.getElementById('fName').value=t?t.name:'';
+  document.getElementById('fCat').value=t?t.cat:'Finance';
+  document.getElementById('fDesc').value=t?t.desc:'';
+  document.getElementById('fStatus').value=t?t.status:'';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function saveTool(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name)return;
+  if(editId){
+    const t=tools.find(x=>x.id===editId);
+    t.name=name;t.cat=document.getElementById('fCat').value;
+    t.desc=document.getElementById('fDesc').value;t.status=document.getElementById('fStatus').value;
+  } else {
+    tools.push({id:Date.now(),name,cat:document.getElementById('fCat').value,desc:document.getElementById('fDesc').value,status:document.getElementById('fStatus').value});
+  }
+  saveTools();closeModal();renderAdminDash();renderTools();
+}
+function deleteTool(id){
+  if(!confirm('Delete this tool?'))return;
+  tools=tools.filter(t=>t.id!==id);
+  saveTools();renderAdminDash();renderTools();
+}
+
+// ─── GAMES ───────────────────────────────────────
+let snakeGame=null,typeGame=null,mineState=null;
+
+function openGame(type){
+  document.getElementById('gameModal').classList.add('open');
+  const titles={snake:'Snake.exe',typerush:'Type Rush',mines:'Grid Breaker'};
+  document.getElementById('gmTitle').textContent=titles[type];
+  const body=document.getElementById('gmBody');
+  if(type==='snake') initSnake(body);
+  else if(type==='typerush') initTypeRush(body);
+  else if(type==='mines') initMines(body);
+}
+function closeGame(){
+  document.getElementById('gameModal').classList.remove('open');
+  if(snakeGame){clearInterval(snakeGame.interval);snakeGame=null}
+  if(typeGame){clearInterval(typeGame.interval);typeGame=null}
+  if(mineState){clearInterval(mineState.timer);mineState=null}
+}
+
+// SNAKE
+function initSnake(body){
+  const W=20,H=20,SZ=20;
+  body.innerHTML=`
+    <div class="gm-score-bar">Score<span class="gm-score-val" id="snakeScore">0</span> High<span class="gm-score-val" id="snakeHi">${localStorage.getItem('sira_snake_hi')||0}</span></div>
+    <div class="gm-canvas-wrap"><canvas id="snakeCanvas" width="${W*SZ}" height="${H*SZ}"></canvas></div>
+    <div class="gm-controls">Arrow keys / WASD to move</div>
+    <div style="margin-top:1rem"><button class="gm-btn" onclick="startSnake()">▶ Start</button><button class="gm-btn secondary" onclick="startSnake()">↺ Restart</button></div>
+  `;
+  snakeGame={W,H,SZ,snake:[{x:10,y:10}],dir:{x:1,y:0},food:{x:5,y:5},score:0,alive:false,interval:null};
+  drawSnake();
+}
+function startSnake(){
+  if(!snakeGame)return;
+  const g=snakeGame;
+  if(g.interval)clearInterval(g.interval);
+  g.snake=[{x:10,y:10}];g.dir={x:1,y:0};g.score=0;g.alive=true;
+  spawnSnakeFood();
+  document.getElementById('snakeScore').textContent='0';
+  g.interval=setInterval(stepSnake,120);
+}
+function spawnSnakeFood(){
+  const g=snakeGame;
+  let f;
+  do{f={x:Math.floor(Math.random()*g.W),y:Math.floor(Math.random()*g.H)}}
+  while(g.snake.some(s=>s.x===f.x&&s.y===f.y));
+  g.food=f;
+}
+function stepSnake(){
+  const g=snakeGame;if(!g.alive)return;
+  const head={x:g.snake[0].x+g.dir.x,y:g.snake[0].y+g.dir.y};
+  if(head.x<0||head.x>=g.W||head.y<0||head.y>=g.H||g.snake.some(s=>s.x===head.x&&s.y===head.y)){
+    g.alive=false;clearInterval(g.interval);
+    const hi=Math.max(g.score,parseInt(localStorage.getItem('sira_snake_hi')||0));
+    localStorage.setItem('sira_snake_hi',hi);
+    document.getElementById('snakeHi').textContent=hi;
+    drawSnake(true);return;
+  }
+  g.snake.unshift(head);
+  if(head.x===g.food.x&&head.y===g.food.y){g.score++;document.getElementById('snakeScore').textContent=g.score;spawnSnakeFood();}
+  else g.snake.pop();
+  drawSnake();
+}
+function drawSnake(dead=false){
+  const g=snakeGame;if(!g)return;
+  const canvas=document.getElementById('snakeCanvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#060609';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#1a1a28';ctx.lineWidth=0.5;
+  for(let x=0;x<g.W;x++){ctx.beginPath();ctx.moveTo(x*g.SZ,0);ctx.lineTo(x*g.SZ,canvas.height);ctx.stroke()}
+  for(let y=0;y<g.H;y++){ctx.beginPath();ctx.moveTo(0,y*g.SZ);ctx.lineTo(canvas.width,y*g.SZ);ctx.stroke()}
+  ctx.fillStyle=dead?'#ff4d2e':'#c8f53a';
+  g.snake.forEach((s,i)=>{
+    ctx.globalAlpha=i===0?1:Math.max(0.3,1-i*0.04);
+    ctx.fillRect(s.x*g.SZ+1,s.y*g.SZ+1,g.SZ-2,g.SZ-2);
+  });
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#ff4d2e';ctx.shadowColor='#ff4d2e';ctx.shadowBlur=8;
+  ctx.fillRect(g.food.x*g.SZ+3,g.food.y*g.SZ+3,g.SZ-6,g.SZ-6);
+  ctx.shadowBlur=0;
+  if(dead){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#ff4d2e';ctx.font='bold 20px Space Mono,monospace';ctx.textAlign='center';ctx.fillText('GAME OVER',canvas.width/2,canvas.height/2);}
+}
+document.addEventListener('keydown',e=>{
+  if(!snakeGame||!snakeGame.alive)return;
+  const d=snakeGame.dir;
+  if((e.key==='ArrowUp'||e.key==='w')&&d.y!==1)snakeGame.dir={x:0,y:-1};
+  else if((e.key==='ArrowDown'||e.key==='s')&&d.y!==-1)snakeGame.dir={x:0,y:1};
+  else if((e.key==='ArrowLeft'||e.key==='a')&&d.x!==1)snakeGame.dir={x:-1,y:0};
+  else if((e.key==='ArrowRight'||e.key==='d')&&d.x!==-1)snakeGame.dir={x:1,y:0};
+});
+
+// TYPE RUSH
+const TR_WORDS=['the','be','to','of','and','a','in','that','have','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most'];
+function initTypeRush(body){
+  body.innerHTML=`
+    <div class="gm-score-bar">WPM<span class="gm-score-val" id="trWpm">0</span> Correct<span class="gm-score-val" id="trCorrect">0</span> Time<span class="gm-score-val" id="trTime">60s</span></div>
+    <div class="tr-progress-track"><div class="tr-progress-fill" id="trProg" style="width:100%"></div></div>
+    <div class="tr-word-display" id="trDisplay">Start typing to begin</div>
+    <input class="tr-input" id="trInput" placeholder="Type the word above..." autocomplete="off" spellcheck="false" autocorrect="off">
+    <div class="tr-stats-row" id="trStats" style="display:none">
+      <div class="tr-stat"><div class="tr-stat-val" id="finalWpm">0</div><div class="tr-stat-label">WPM</div></div>
+      <div class="tr-stat"><div class="tr-stat-val" id="finalAcc">0%</div><div class="tr-stat-label">Accuracy</div></div>
+      <div class="tr-stat"><div class="tr-stat-val" id="finalWords">0</div><div class="tr-stat-label">Words</div></div>
+    </div>
+    <div style="margin-top:1.5rem"><button class="gm-btn" onclick="startTypeRush()">▶ Start / Restart</button></div>
+  `;
+  typeGame=null;
+  document.getElementById('trInput').addEventListener('input',handleTypeInput);
+}
+function startTypeRush(){
+  if(typeGame&&typeGame.interval)clearInterval(typeGame.interval);
+  const words=[];for(let i=0;i<200;i++)words.push(TR_WORDS[Math.floor(Math.random()*TR_WORDS.length)]);
+  typeGame={words,idx:0,correct:0,total:0,timeLeft:60,started:false,interval:null};
+  document.getElementById('trStats').style.display='none';
+  document.getElementById('trInput').value='';
+  document.getElementById('trWpm').textContent='0';
+  document.getElementById('trCorrect').textContent='0';
+  document.getElementById('trTime').textContent='60s';
+  document.getElementById('trProg').style.width='100%';
+  renderTrWord();
+  document.getElementById('trInput').focus();
+}
+function renderTrWord(){
+  if(!typeGame)return;
+  document.getElementById('trDisplay').textContent=typeGame.words[typeGame.idx]||'';
+}
+function handleTypeInput(){
+  if(!typeGame)return;
+  const inp=document.getElementById('trInput');
+  const val=inp.value;
+  if(!typeGame.started&&val.length>0){
+    typeGame.started=true;
+    typeGame.interval=setInterval(()=>{
+      typeGame.timeLeft--;
+      document.getElementById('trTime').textContent=typeGame.timeLeft+'s';
+      document.getElementById('trProg').style.width=(typeGame.timeLeft/60*100)+'%';
+      if(typeGame.timeLeft<=0){clearInterval(typeGame.interval);endTypeRush();}
+    },1000);
+  }
+  if(val.endsWith(' ')){
+    const typed=val.trim();
+    typeGame.total++;
+    if(typed===typeGame.words[typeGame.idx])typeGame.correct++;
+    typeGame.idx++;
+    inp.value='';
+    inp.classList.remove('wrong');
+    const elapsed=60-typeGame.timeLeft;
+    const wpm=elapsed>0?Math.round(typeGame.correct/(elapsed/60)):0;
+    document.getElementById('trWpm').textContent=wpm;
+    document.getElementById('trCorrect').textContent=typeGame.correct;
+    renderTrWord();
+  } else {
+    const target=typeGame.words[typeGame.idx]||'';
+    const ok=target.startsWith(val);
+    inp.classList.toggle('wrong',!ok&&val.length>0);
+  }
+}
+function endTypeRush(){
+  const wpm=Math.round(typeGame.correct/1);
+  const acc=typeGame.total>0?Math.round(typeGame.correct/typeGame.total*100):0;
+  document.getElementById('trInput').value='';
+  document.getElementById('trDisplay').textContent='Done!';
+  document.getElementById('trStats').style.display='flex';
+  document.getElementById('finalWpm').textContent=wpm;
+  document.getElementById('finalAcc').textContent=acc+'%';
+  document.getElementById('finalWords').textContent=typeGame.correct;
+}
+
+// MINESWEEPER
+let mineRows=9,mineCols=9,mineCount=10,mineBoard=[],mineFirstClick=true,mineGameOver=false,mineTimerInterval=null,mineStartTime=0;
+function initMines(body){
+  body.innerHTML=`
+    <div class="mine-controls-row">
+      <button class="mine-diff-btn active" id="diffEasy" onclick="setMineDiff(9,9,10,'Easy')">Easy</button>
+      <button class="mine-diff-btn" id="diffMed" onclick="setMineDiff(12,12,20,'Med')">Medium</button>
+      <button class="mine-diff-btn" id="diffHard" onclick="setMineDiff(16,16,40,'Hard')">Hard</button>
+      <span class="mine-flag-hint" id="mineCounter">💣 10</span>
+      <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted)" id="mineTime">0s</span>
+      <button class="gm-btn secondary" onclick="resetMines()" style="margin:0">↺</button>
+    </div>
+    <div style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);margin-bottom:1rem;letter-spacing:0.06em" id="mineStatus">Click to start · Right-click to flag</div>
+    <div class="mine-grid-wrap"><div class="mine-grid" id="mineGrid"></div></div>
+    <div class="gm-controls">Left-click reveal · Right-click flag · Clear all safe cells to win</div>
+  `;
+  buildMineBoard();
+}
+function setMineDiff(r,c,m,id){
+  mineRows=r;mineCols=c;mineCount=m;
+  ['Easy','Med','Hard'].forEach(x=>{const el=document.getElementById('diff'+x);if(el)el.classList.remove('active')});
+  const el=document.getElementById('diff'+id);if(el)el.classList.add('active');
+  resetMines();
+}
+function buildMineBoard(){
+  mineBoard=Array.from({length:mineRows},()=>Array.from({length:mineCols},()=>({mine:false,revealed:false,flagged:false,count:0})));
+  mineFirstClick=true;mineGameOver=false;
+  clearInterval(mineTimerInterval);
+  const tc=document.getElementById('mineTime');const sc=document.getElementById('mineCounter');const st=document.getElementById('mineStatus');
+  if(tc)tc.textContent='0s';if(sc)sc.textContent='💣 '+mineCount;if(st){st.textContent='Click to start · Right-click to flag';st.style.color='var(--muted)';}
+  renderMineGrid();
+}
+function resetMines(){buildMineBoard();}
+function placeMines(skipR,skipC){
+  let placed=0;
+  while(placed<mineCount){
+    const r=Math.floor(Math.random()*mineRows),c=Math.floor(Math.random()*mineCols);
+    if(!mineBoard[r][c].mine&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){mineBoard[r][c].mine=true;placed++;}
+  }
+  for(let r=0;r<mineRows;r++){for(let c=0;c<mineCols;c++){
+    if(!mineBoard[r][c].mine){let cnt=0;for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<mineRows&&nc>=0&&nc<mineCols&&mineBoard[nr][nc].mine)cnt++;}}mineBoard[r][c].count=cnt;}
+  }}
+}
+function revealCell(r,c){
+  if(r<0||r>=mineRows||c<0||c>=mineCols)return;
+  const cell=mineBoard[r][c];
+  if(cell.revealed||cell.flagged)return;
+  cell.revealed=true;
+  if(cell.count===0&&!cell.mine){for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++)revealCell(r+dr,c+dc);}}
+}
+function handleMineClick(r,c,e){
+  if(e)e.preventDefault();
+  if(mineGameOver)return;
+  const cell=mineBoard[r][c];
+  if(e&&e.type==='contextmenu'){
+    if(cell.revealed)return;
+    cell.flagged=!cell.flagged;
+    const flags=mineBoard.flat().filter(c=>c.flagged).length;
+    const sc=document.getElementById('mineCounter');if(sc)sc.textContent='💣 '+(mineCount-flags);
+    renderMineGrid();return;
+  }
+  if(cell.flagged||cell.revealed)return;
+  if(mineFirstClick){
+    mineFirstClick=false;placeMines(r,c);mineStartTime=Date.now();
+    mineTimerInterval=setInterval(()=>{if(!mineGameOver){const el=document.getElementById('mineTime');if(el)el.textContent=Math.floor((Date.now()-mineStartTime)/1000)+'s';}},500);
+  }
+  if(cell.mine){
+    mineBoard.flat().filter(c=>c.mine).forEach(c=>c.revealed=true);mineBoard[r][c].boom=true;mineGameOver=true;clearInterval(mineTimerInterval);
+    const st=document.getElementById('mineStatus');if(st){st.textContent='💥 BOOM — Better luck next time';st.style.color='var(--accent2)';}
+    renderMineGrid();return;
+  }
+  revealCell(r,c);
+  const total=mineRows*mineCols-mineCount,revealed=mineBoard.flat().filter(c=>c.revealed&&!c.mine).length;
+  if(revealed>=total){mineGameOver=true;clearInterval(mineTimerInterval);const t=Math.floor((Date.now()-mineStartTime)/1000);const st=document.getElementById('mineStatus');if(st){st.textContent=`✓ Cleared in ${t}s — SIRA approved`;st.style.color='var(--accent)';}}
+  renderMineGrid();
+}
+function renderMineGrid(){
+  const grid=document.getElementById('mineGrid');if(!grid)return;
+  grid.style.gridTemplateColumns=`repeat(${mineCols},auto)`;
+  const nc=['','mine-n1','mine-n2','mine-n3','mine-n4','mine-n5','mine-n6','mine-n7','mine-n8'];
+  grid.innerHTML=mineBoard.map((row,r)=>row.map((cell,c)=>{
+    let cls='mine-cell',content='';
+    if(cell.revealed){cls+=' revealed';if(cell.mine){cls+=cell.boom?' boom':' safe-reveal';content='💣';}else if(cell.count>0){cls+=' '+nc[cell.count];content=cell.count;}else{cls+=' safe-reveal';}}
+    else if(cell.flagged){cls+=' flagged';content='🚩';}
+    return `<div class="${cls}" onclick="handleMineClick(${r},${c},event)" oncontextmenu="handleMineClick(${r},${c},event)">${content}</div>`;
+  }).join('')).join('');
+}
+
+// ─── CURSOR ──────────────────────────────────────
+const cursorEl=document.getElementById('cursor');
+const ringEl=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cursorEl.style.left=mx+'px';cursorEl.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;
+  ringEl.style.left=rx+'px';ringEl.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,[onclick]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursorEl.classList.add('hover');ringEl.classList.add('hover')});
+  el.addEventListener('mouseleave',()=>{cursorEl.classList.remove('hover');ringEl.classList.remove('hover')});
+});
+
+// ─── NAV SCROLL ──────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+});
+
+// ─── REVEAL ON SCROLL ────────────────────────────
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ─── HERO PARALLAX (mouse) ───────────────────────
+document.getElementById('hero').addEventListener('mousemove',e=>{
+  const {clientX,clientY}=e;
+  const cx=window.innerWidth/2, cy=window.innerHeight/2;
+  const dx=(clientX-cx)/cx, dy=(clientY-cy)/cy;
+  const cards=document.getElementById('featuredCards');
+  if(cards)cards.style.transform=`rotateX(${-dy*3}deg) rotateY(${dx*3}deg)`;
+});
+document.getElementById('hero').addEventListener('mouseleave',()=>{
+  const cards=document.getElementById('featuredCards');
+  if(cards)cards.style.transform='';
+});
+
+// ─── KEYBOARD CAROUSEL ───────────────────────────
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('gameModal').classList.contains('open'))return;
+  if(e.key==='ArrowLeft')carouselMove(-1);
+  else if(e.key==='ArrowRight')carouselMove(1);
+});
+
+// ─── MODAL BACKDROP ──────────────────────────────
+document.getElementById('gameModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('gameModal'))closeGame();
+});
+
+// ─── INIT ────────────────────────────────────────
+buildParticles();
+buildMarquee();
+buildCarousel();
+renderTools();
+resetAutoSlide();
+
+// re-observe newly created reveal elements
+setTimeout(()=>{
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el=>io.observe(el));
+},100);
+</script>
+</body>
+</html>
