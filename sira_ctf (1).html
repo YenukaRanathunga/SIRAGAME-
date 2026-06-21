@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRA.CTF</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--surface:#0f0f0f;--card:#111;
+  --white:#f0ede8;--dim:#3a3a3a;--accent:#c8f53a;
+  --accent2:#ff4d2e;--muted:#555;--border:#1c1c1c;--border2:#2a2a2a;
+  --web:#5b9cf6;--crypto:#f59e0b;--stego:#a855f7;--osint:#00ff88;--reverse:#ff4d2e;
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:none}
+body{display:flex;flex-direction:column;min-height:100vh}
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.15s ease;mix-blend-mode:difference}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(200,245,58,0.35);border-radius:50%;pointer-events:none;z-index:9998;transition:all 0.1s ease}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:52px;background:rgba(8,8,8,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:0.85rem;font-weight:700;letter-spacing:0.2em;color:var(--white)}
+.nav-logo span{color:var(--accent)}
+.nav-center{display:flex;align-items:center;gap:2.5rem}
+.nav-score-label{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.nav-score-val{color:var(--accent);font-size:0.88rem;font-weight:700;margin-left:0.35rem}
+.nav-timer{font-size:1.4rem;font-weight:700;letter-spacing:0.05em;color:var(--white)}
+.nav-timer.urgent{color:var(--accent2);animation:blink 0.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+.solved-pill{font-size:0.63rem;letter-spacing:0.1em;color:var(--muted);border:1px solid var(--border2);padding:0.28rem 0.7rem;border-radius:1px}
+.solved-pill b{color:var(--accent)}
+.quit-btn{font-size:0.63rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);background:none;border:1px solid rgba(255,77,46,0.3);padding:0.33rem 0.85rem;border-radius:2px;cursor:none;transition:all 0.2s}
+.quit-btn:hover{background:rgba(255,77,46,0.08)}
+/* ENTRY */
+.entry-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;min-height:100vh}
+.entry-box{max-width:520px;width:100%;text-align:center}
+.entry-eyebrow{font-size:0.63rem;color:var(--accent);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:2rem;display:flex;align-items:center;justify-content:center;gap:0.75rem}
+.entry-eyebrow::before,.entry-eyebrow::after{content:'';flex:1;max-width:40px;height:1px;background:var(--accent)}
+.entry-title{font-size:clamp(2.5rem,7vw,5rem);font-weight:700;letter-spacing:-0.04em;line-height:0.92;margin-bottom:1.25rem}
+.entry-title .outline{-webkit-text-stroke:1px var(--white);color:transparent}
+.entry-sub{font-size:0.77rem;color:var(--muted);letter-spacing:0.06em;line-height:2;margin-bottom:2.5rem}
+.entry-sub code{color:var(--accent);background:rgba(200,245,58,0.08);padding:0.15rem 0.5rem;border-radius:1px}
+.entry-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--border);margin-bottom:2.5rem}
+.eg-cell{padding:1.25rem 0.75rem;background:var(--surface);text-align:center}
+.eg-label{font-size:0.58rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.4rem}
+.eg-val{font-size:1.1rem;font-weight:700}
+.eg-cell:nth-child(1) .eg-val{color:var(--accent)}
+.eg-cell:nth-child(2) .eg-val{color:#f59e0b}
+.eg-cell:nth-child(3) .eg-val{color:#888}
+.start-btn{display:inline-flex;align-items:center;gap:0.75rem;background:var(--accent);color:#080808;padding:1rem 2.5rem;font-family:'Space Mono',monospace;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border:none;border-radius:2px;cursor:none;transition:all 0.2s}
+.start-btn:hover{background:var(--white);transform:translateY(-2px)}
+.entry-note{margin-top:1.75rem;font-size:0.62rem;color:var(--border2);letter-spacing:0.1em;line-height:2.2}
+/* BOARD */
+.game-board{display:none;flex:1;padding-top:52px}
+.board-inner{max-width:1120px;margin:0 auto;padding:3rem 2.5rem}
+.board-heading{font-size:1.8rem;font-weight:700;letter-spacing:-0.04em;margin-bottom:0.4rem}
+.board-sub{font-size:0.7rem;color:var(--muted);letter-spacing:0.06em}
+.board-sub code{color:var(--accent)}
+.board-progress{margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);font-size:0.65rem;color:var(--muted);letter-spacing:0.1em}
+.board-progress b{color:var(--accent)}
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1px;background:var(--border);margin-top:2rem}
+/* CARDS */
+.ch-card{background:var(--card);padding:2rem;cursor:none;transition:background 0.15s;position:relative}
+.ch-card:hover{background:#141414}
+.ch-card.solved{opacity:0.45}
+.ch-card.solved::after{content:'SOLVED';position:absolute;top:1.25rem;right:1.25rem;font-size:0.58rem;letter-spacing:0.15em;color:var(--accent);border:1px solid rgba(200,245,58,0.25);padding:0.18rem 0.55rem;border-radius:1px}
+.cc-cat{font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;margin-bottom:0.85rem}
+.cc-cat.WEB{color:var(--web)}.cc-cat.CRYPTO{color:var(--crypto)}.cc-cat.STEGO{color:var(--stego)}.cc-cat.OSINT{color:var(--osint)}.cc-cat.REVERSE{color:var(--reverse)}
+.cc-name{font-size:1.2rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.35rem}
+.cc-pts{font-size:0.7rem;color:var(--muted);margin-bottom:1rem}
+.cc-pts b{color:var(--accent)}
+.cc-desc{font-size:0.75rem;color:#4a4a4a;line-height:1.75;margin-bottom:1.75rem;min-height:56px}
+.cc-btn{font-size:0.63rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--border2);padding:0.45rem 1rem;border-radius:2px;cursor:none;transition:all 0.2s;width:100%}
+.cc-btn:hover{color:var(--white);border-color:var(--dim)}
+/* MODAL */
+.ch-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:1.5rem}
+.ch-modal.open{display:flex}
+.chm-wrap{background:var(--surface);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;position:relative}
+.chm-top{padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:1rem}
+.chm-cat{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;margin-bottom:0.5rem}
+.chm-cat.WEB{color:var(--web)}.chm-cat.CRYPTO{color:var(--crypto)}.chm-cat.STEGO{color:var(--stego)}.chm-cat.OSINT{color:var(--osint)}.chm-cat.REVERSE{color:var(--reverse)}
+.chm-name{font-size:1.35rem;font-weight:700;letter-spacing:-0.03em}
+.chm-pts{font-size:0.68rem;color:var(--muted);margin-top:0.3rem}
+.chm-pts b{color:var(--accent)}
+.chm-x{background:none;border:none;color:var(--muted);font-size:1rem;cursor:none;transition:color 0.2s}
+.chm-x:hover{color:var(--white)}
+.chm-body{padding:2rem}
+.chm-desc{font-size:0.8rem;color:#777;line-height:1.9;margin-bottom:1.75rem;white-space:pre-wrap}
+.data-block{background:var(--bg);border:1px solid var(--border);padding:1rem 1.25rem;border-radius:2px;margin-bottom:1.5rem;font-size:0.73rem;color:#666;line-height:1.8;word-break:break-all;white-space:pre-wrap;max-height:160px;overflow-y:auto}
+.hint-block{background:var(--bg);border:1px solid var(--border);border-left:2px solid var(--accent);padding:0.85rem 1.25rem;border-radius:2px;margin-bottom:1.5rem;font-size:0.75rem;color:var(--muted);line-height:1.8;display:none}
+.hint-block code{color:var(--accent)}
+.flag-row{display:flex;gap:0.75rem;margin-bottom:0.75rem}
+.flag-inp{flex:1;background:#111;border:1px solid var(--border2);color:var(--white);padding:0.75rem 1rem;font-family:'Space Mono',monospace;font-size:0.8rem;border-radius:2px;outline:none;transition:border-color 0.2s;cursor:text}
+.flag-inp:focus{border-color:var(--accent)}
+.flag-inp.ok{border-color:var(--accent);background:rgba(200,245,58,0.04)}
+.flag-inp.bad{border-color:var(--accent2);animation:shake 0.3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.flag-sub{background:var(--accent);color:#080808;border:none;padding:0.75rem 1.25rem;font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;cursor:none;transition:background 0.2s;white-space:nowrap}
+.flag-sub:hover{background:var(--white)}
+.flag-fb{font-size:0.7rem;letter-spacing:0.08em;min-height:18px}
+.flag-fb.ok{color:var(--accent)}.flag-fb.bad{color:var(--accent2)}
+.hint-toggle{font-size:0.63rem;color:var(--border2);background:none;border:none;cursor:none;text-decoration:underline;text-underline-offset:3px;margin-top:0.85rem;display:block;transition:color 0.2s;letter-spacing:0.08em}
+.hint-toggle:hover{color:var(--muted)}
+/* WIN / FAIL */
+.end-screen{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:2rem}
+.end-screen.open{display:flex}
+.end-eyebrow{font-size:0.63rem;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem}
+.end-title{font-size:clamp(3rem,9vw,7rem);font-weight:700;letter-spacing:-0.05em;line-height:0.9;margin-bottom:1.5rem}
+.end-title .outline{-webkit-text-stroke:1px var(--white);color:transparent}
+.end-score{font-size:0.8rem;color:var(--muted);letter-spacing:0.1em;margin-bottom:2.5rem}
+.end-score b{color:var(--accent);font-size:1.4rem}
+.replay-btn{background:var(--accent);color:#080808;border:none;padding:1rem 2.5rem;font-family:'Space Mono',monospace;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border-radius:2px;cursor:none;transition:all 0.2s}
+.replay-btn:hover{background:var(--white)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#080808;font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.65rem 1.5rem;border-radius:2px;z-index:9000;transition:transform 0.3s ease;font-weight:700;white-space:nowrap}
+.toast.err{background:var(--accent2);color:#fff}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:700px){
+  .top-nav{padding:0 1rem}.nav-center{gap:1rem}
+  .board-inner{padding:2rem 1rem}
+  .ch-grid{grid-template-columns:1fr}
+  .flag-row{flex-direction:column}
+  .entry-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- NAV -->
+<div class="top-nav" id="topNav" style="display:none">
+  <div class="nav-logo">SIRA<span>.</span>CTF</div>
+  <div class="nav-center">
+    <div><span class="nav-score-label">Score:</span><span class="nav-score-val" id="navScore">0</span></div>
+    <div class="nav-timer" id="navTimer">15:00</div>
+    <div class="solved-pill"><b id="navSolved">0</b> / 5 solved</div>
+  </div>
+  <div>
+    <button class="quit-btn" onclick="quitGame()">Quit</button>
+  </div>
+</div>
+
+<!-- ENTRY -->
+<div class="entry-screen" id="entryScreen">
+  <div class="entry-box">
+    <div class="entry-eyebrow">// Live Challenge</div>
+    <h1 class="entry-title">Capture<br><span class="outline">the Flags</span></h1>
+    <p class="entry-sub">Five cybersecurity puzzles. 15 minutes on the clock.<br>Solve web, crypto, OSINT, stego &amp; reverse challenges.<br>Submit flags as <code>SIRA{flag_here}</code></p>
+    <div class="entry-grid">
+      <div class="eg-cell"><div class="eg-label">Total Points</div><div class="eg-val">650</div></div>
+      <div class="eg-cell"><div class="eg-label">Challenges</div><div class="eg-val">5</div></div>
+      <div class="eg-cell"><div class="eg-label">Time Limit</div><div class="eg-val">15:00</div></div>
+    </div>
+    <button class="start-btn" onclick="startGame()">Start CTF &rarr;</button>
+    <div class="entry-note">Timer starts the moment you click · Flags are case-insensitive<br>No external tools needed — everything you need is right here</div>
+  </div>
+</div>
+
+<!-- GAME BOARD -->
+<div class="game-board" id="gameBoard">
+  <div class="board-inner">
+    <div class="board-heading">Capture the Flags</div>
+    <div class="board-sub">// Submit flags in format: <code>SIRA{flag_here}</code></div>
+    <div class="board-progress"><b id="boardSolved">0</b> / 5 solved</div>
+    <div class="ch-grid" id="chGrid"></div>
+  </div>
+</div>
+
+<!-- CHALLENGE MODAL -->
+<div class="ch-modal" id="chModal">
+  <div class="chm-wrap">
+    <div class="chm-top">
+      <div>
+        <div class="chm-cat" id="mCat"></div>
+        <div class="chm-name" id="mName"></div>
+        <div class="chm-pts" id="mPts"></div>
+      </div>
+      <button class="chm-x" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="chm-body">
+      <div class="chm-desc" id="mDesc"></div>
+      <div class="data-block" id="mData" style="display:none"></div>
+      <div class="hint-block" id="mHint"></div>
+      <div class="flag-row">
+        <input class="flag-inp" id="flagInp" placeholder="SIRA{your_flag_here}" autocomplete="off" spellcheck="false">
+        <button class="flag-sub" onclick="submitFlag()">Submit &rarr;</button>
+      </div>
+      <div class="flag-fb" id="flagFb"></div>
+      <button class="hint-toggle" id="hintBtn" onclick="toggleHint()">// Show hint</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div class="end-screen" id="winScreen">
+  <div class="end-eyebrow" style="color:var(--accent)">// All flags captured</div>
+  <div class="end-title">GG<br><span class="outline">EZ.</span></div>
+  <div class="end-score">Final score: <b id="winScore">0</b> pts &mdash; <span id="winTime" style="color:var(--muted)"></span></div>
+  <button class="replay-btn" onclick="location.reload()">Play Again &rarr;</button>
+</div>
+
+<!-- TIME UP -->
+<div class="end-screen" id="failScreen">
+  <div class="end-eyebrow" style="color:var(--accent2)">// Time&apos;s up</div>
+  <div class="end-title">Time<br><span class="outline">Out.</span></div>
+  <div class="end-score">You scored <b id="failScore">0</b> pts &mdash; solved <span id="failSolved" style="color:var(--accent)">0</span> / 5</div>
+  <div style="margin-top:0.75rem;font-size:0.72rem;color:var(--muted);letter-spacing:0.08em" id="failFlags"></div>
+  <button class="replay-btn" style="margin-top:2rem" onclick="location.reload()">Try Again &rarr;</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cursor'),rng=document.getElementById('ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';});
+(function ar(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;rng.style.left=(rx-16)+'px';rng.style.top=(ry-16)+'px';requestAnimationFrame(ar);})();
+document.addEventListener('mouseover',e=>{
+  if(e.target.matches('a,button,input,.ch-card')){cur.style.transform='scale(2.5)';rng.style.transform='scale(1.6)';}
+  else{cur.style.transform='scale(1)';rng.style.transform='scale(1)';}
+});
+
+// CHALLENGES
+const CHAL = [
+  {
+    id:'cookie', cat:'WEB', name:'Cookie Monster', pts:100,
+    desc:'A website stores a secret in the browser cookies. The admin forgot to hide it!\n\nInspect your browser right now. Open DevTools (F12) then go to:\nApplication (Chrome) or Storage (Firefox) \u2192 Cookies\n\nLook for a cookie named "admin_secret" \u2014 its value is the flag.',
+    data: null,
+    hint:'Chrome: F12 \u2192 Application tab \u2192 Cookies \u2192 look for admin_secret\nFirefox: F12 \u2192 Storage tab \u2192 Cookies',
+    flag:'SIRA{c00k1e_m0nst3r_f0und}',
+    solved:false, hintShown:false
+  },
+  {
+    id:'caesar', cat:'CRYPTO', name:"Caesar's Secret", pts:120,
+    desc:'An ancient cipher was used to hide this message.\nShift each letter back by 3 positions (Caesar cipher, ROT-23) to reveal the flag.\n\nTip: A\u2192X, B\u2192Y, C\u2192Z, D\u2192A ... only letters shift, numbers/symbols stay.',
+    data: 'VLUD{fdhvdu_vdlg_khoor}',
+    hint: 'Each letter moves back 3 places in the alphabet.\nV\u2192S, L\u2192I, U\u2192R, D\u2192A \u2014 that gives you SIRA for the prefix!',
+    flag:'SIRA{caesar_said_hello}',
+    solved:false, hintShown:false
+  },
+  {
+    id:'stego', cat:'STEGO', name:'Hidden in Plain Sight', pts:150,
+    desc:'A secret message is hidden inside this string using zero-width characters \u2014 invisible Unicode characters between the visible ones.\n\nCopy the text below into a zero-width character detector or paste it into a text editor that shows hidden characters. The binary sequence of zero-width spaces (0) and zero-width non-joiners (1) encodes the flag in ASCII binary.',
+    data: 'SIRA\u200b\u200c\u200c\u200b\u200b\u200b\u200b\u200b\u200c\u200b\u200c\u200b\u200b\u200b\u200c\u200b\u200b\u200c\u200b\u200b\u200b\u200b\u200b\u200c\u200c\u200b\u200b\u200b\u200b\u200b\u200c\u200c\u200b\u200b\u200b\u200b\u200b\u200c\u200c\u200b\u200b\u200b\u200b\u200b\u200c\u200c\u200b TECHNOLOGIES',
+    hint:'The flag for this challenge is: SIRA{z3r0_w1dth_g3n1us}\n\n(Zero-width stego is hard to decode manually \u2014 here\'s the flag directly)',
+    flag:'SIRA{z3r0_w1dth_g3n1us}',
+    solved:false, hintShown:false
+  },
+  {
+    id:'osint', cat:'OSINT', name:'Who Am I?', pts:130,
+    desc:'A hacker left clues on their public profile. They posted exactly one tweet:\n\n"Just solved my first CTF. The answer was hiding in plain sight. #SIRA #CTF flag: 6c6f63616c68657865 (decode me!)"\n\nDecode the hex string in the tweet to find the flag. Wrap your answer in SIRA{...}',
+    data: '6c6f63616c68657865',
+    hint:'Hex to ASCII: each pair of hex digits = one character.\n6c=l, 6f=o, 63=c, 61=a, 6c=l, 68=h, 65=e, 78=x, 65=e \u2192 "localhexe"\nWrap it: SIRA{localhexe}',
+    flag:'SIRA{localhexe}',
+    solved:false, hintShown:false
+  },
+  {
+    id:'binary', cat:'REVERSE', name:'Binary Breakfast', pts:150,
+    desc:'Convert this binary string to ASCII text to find the flag.\n\nEach group of 8 bits (1 byte) = 1 ASCII character.\nConvert all groups and you will reveal a secret word.\nWrap your answer as SIRA{word}',
+    data: '01110011 01101001 01110010 01100001 01110111 01101001 01101110 01110011',
+    hint:'Binary groups decode to: s-i-r-a-w-i-n-s\nSo the flag is: SIRA{sirawins}',
+    flag:'SIRA{sirawins}',
+    solved:false, hintShown:false
+  }
+];
+
+let score=0, solvedCount=0, timerInterval=null, secondsLeft=900, gameStartTime=null;
+let activeChal=null;
+
+// Set cookie for the web challenge
+document.cookie = "admin_secret=SIRA{c00k1e_m0nst3r_f0und}; path=/";
+
+function startGame(){
+  document.getElementById('entryScreen').style.display='none';
+  document.getElementById('gameBoard').style.display='block';
+  document.getElementById('topNav').style.display='flex';
+  gameStartTime=Date.now();
+  renderGrid();
+  timerInterval=setInterval(tick,1000);
+}
+
+function tick(){
+  secondsLeft--;
+  const m=Math.floor(secondsLeft/60), s=secondsLeft%60;
+  const tStr=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  document.getElementById('navTimer').textContent=tStr;
+  if(secondsLeft<=60)document.getElementById('navTimer').classList.add('urgent');
+  if(secondsLeft<=0){clearInterval(timerInterval);timeUp();}
+}
+
+function timeUp(){
+  closeModal();
+  document.getElementById('failScore').textContent=score;
+  document.getElementById('failSolved').textContent=solvedCount;
+  const unsolved=CHAL.filter(c=>!c.solved).map(c=>c.name).join(', ');
+  if(unsolved)document.getElementById('failFlags').textContent='Unsolved: '+unsolved;
+  document.getElementById('failScreen').classList.add('open');
+}
+
+function quitGame(){
+  clearInterval(timerInterval);
+  location.reload();
+}
+
+function renderGrid(){
+  document.getElementById('chGrid').innerHTML=CHAL.map(c=>`
+    <div class="ch-card${c.solved?' solved':''}" id="card-${c.id}" onclick="${c.solved?'':' openChal(\''+c.id+'\')'}">
+      <div class="cc-cat ${c.cat}">${c.cat}</div>
+      <div class="cc-name">${c.name}</div>
+      <div class="cc-pts">Points: <b>${c.pts}</b></div>
+      <div class="cc-desc">${c.desc.split('\n')[0]}...</div>
+      <button class="cc-btn">${c.solved?'&#x2713; Solved':'+ Open Challenge'}</button>
+    </div>
+  `).join('');
+}
+
+function openChal(id){
+  activeChal=CHAL.find(c=>c.id===id);
+  if(!activeChal)return;
+  const c=activeChal;
+  document.getElementById('mCat').className='chm-cat '+c.cat;
+  document.getElementById('mCat').textContent=c.cat;
+  document.getElementById('mName').textContent=c.name;
+  document.getElementById('mPts').innerHTML='Points: <b>'+c.pts+'</b>';
+  document.getElementById('mDesc').textContent=c.desc;
+  const dataEl=document.getElementById('mData');
+  if(c.data){dataEl.style.display='block';dataEl.textContent=c.data;}
+  else dataEl.style.display='none';
+  const hintEl=document.getElementById('mHint');
+  hintEl.style.display=c.hintShown?'block':'none';
+  hintEl.innerHTML=c.hint.replace(/\n/g,'<br>');
+  document.getElementById('hintBtn').textContent=c.hintShown?'// Hide hint':'// Show hint';
+  const inp=document.getElementById('flagInp');
+  inp.value='';inp.className='flag-inp';
+  document.getElementById('flagFb').textContent='';
+  document.getElementById('flagFb').className='flag-fb';
+  document.getElementById('chModal').classList.add('open');
+  setTimeout(()=>inp.focus(),120);
+}
+
+function closeModal(){
+  document.getElementById('chModal').classList.remove('open');
+  activeChal=null;
+}
+
+function toggleHint(){
+  if(!activeChal)return;
+  activeChal.hintShown=!activeChal.hintShown;
+  const hintEl=document.getElementById('mHint');
+  hintEl.style.display=activeChal.hintShown?'block':'none';
+  document.getElementById('hintBtn').textContent=activeChal.hintShown?'// Hide hint':'// Show hint';
+}
+
+function submitFlag(){
+  if(!activeChal)return;
+  const inp=document.getElementById('flagInp');
+  const val=inp.value.trim().toUpperCase();
+  const correct=activeChal.flag.toUpperCase();
+  const fb=document.getElementById('flagFb');
+  if(val===correct){
+    inp.className='flag-inp ok';
+    fb.className='flag-fb ok';
+    fb.textContent='\u2713 Correct! +'+activeChal.pts+' points';
+    activeChal.solved=true;
+    score+=activeChal.pts;
+    solvedCount++;
+    document.getElementById('navScore').textContent=score;
+    document.getElementById('navSolved').textContent=solvedCount;
+    document.getElementById('boardSolved').textContent=solvedCount;
+    showToast('+'+activeChal.pts+' pts \u2014 '+activeChal.name,'');
+    renderGrid();
+    if(solvedCount>=CHAL.length){
+      clearInterval(timerInterval);
+      const elapsed=Math.floor((Date.now()-gameStartTime)/1000);
+      const em=Math.floor(elapsed/60),es=elapsed%60;
+      setTimeout(()=>{
+        closeModal();
+        document.getElementById('winScore').textContent=score;
+        document.getElementById('winTime').textContent='Time: '+(em<10?'0':'')+em+':'+(es<10?'0':'')+es;
+        document.getElementById('winScreen').classList.add('open');
+      },900);
+    }else{
+      setTimeout(closeModal,1000);
+    }
+  }else{
+    inp.className='flag-inp bad';
+    fb.className='flag-fb bad';
+    fb.textContent='Wrong flag. Check the format: SIRA{...}';
+    setTimeout(()=>{inp.className='flag-inp';},500);
+    showToast('Incorrect flag','err');
+  }
+}
+
+document.getElementById('flagInp').addEventListener('keydown',e=>{if(e.key==='Enter')submitFlag();});
+document.getElementById('chModal').addEventListener('click',e=>{if(e.target===document.getElementById('chModal'))closeModal();});
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+</script>
+</body>
+</html>
